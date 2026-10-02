@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marine Power & Hydrodynamics Calculator v3</title>
+<meta name="description" content="Preliminary ship resistance, propulsion, propeller matching and rudder-stock screening calculator using Holtrop-Mennen, ITTC 1957, Wageningen B-Series and IACS/BV rule-based rudder equations.">
+<style>
+:root{--bg:#fafafa;--surface:#fff;--border:#e7e5e4;--text:#1c1917;--muted:#57534e;--accent:#b45309;--accent-h:#92400e;--ok:#10b981;--err:#ef4444;--info:#2563eb;--warn:#d97706;--r:6px;--rl:10px;--sh:0 1px 3px rgba(0,0,0,.05)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+.container{max-width:1140px;margin:0 auto;padding:36px 20px}
+header{text-align:center;margin-bottom:28px;border-bottom:2px solid var(--border);padding-bottom:20px}
+h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}.subtitle{font-size:1rem;color:var(--muted);max-width:930px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:26px;margin-bottom:24px;box-shadow:var(--sh)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:20px}.fg{display:flex;flex-direction:column;gap:6px}
+label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:1rem;background:#fff;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(180,83,9,.1)}
+input:disabled{background:#f5f5f4;color:#78716c}
+.checkbox{display:flex;align-items:center;gap:8px;min-height:42px}.checkbox input{width:16px;height:16px}.checkbox label{margin:0;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text)}
+.btn{background:var(--text);color:#fff;padding:12px 26px;border-radius:var(--r);font-weight:600;border:none;cursor:pointer;font-size:.95rem;margin-top:10px;transition:background .2s}.btn:hover{background:#333}.btn.accent{background:var(--accent)}.btn.accent:hover{background:var(--accent-h)}
+.hint{font-size:.74rem;color:var(--muted);margin-top:1px}.formula{font-size:.68rem;color:var(--info);font-style:italic;font-family:"Courier New",Courier,monospace;margin-top:1px}
+.section-title{font-size:1.1rem;font-weight:700;margin-bottom:18px;color:var(--text);padding-bottom:8px;border-bottom:2px solid var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.notice{border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:var(--r);padding:12px 14px;margin-bottom:20px;font-size:.88rem}.notice strong{font-weight:700}
+.status{display:flex;gap:8px;align-items:flex-start;border-radius:var(--r);padding:11px 13px;margin-top:16px;font-size:.84rem}.status.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a}.status.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.status.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.status.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+.results-section{display:none}.summary-box{background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:2px solid var(--accent);border-radius:var(--rl);padding:24px;margin-top:18px}.summary-box h3{font-size:1.08rem;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:.05em}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px}.summary-item{text-align:center}.summary-label{font-size:.75rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}.summary-value{font-size:1.65rem;font-weight:700;color:var(--accent);font-family:"Courier New",Courier,monospace}.summary-unit{font-size:.82rem;color:var(--text);margin-left:4px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:22px}.result-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:18px}.result-card h3{font-size:.83rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}.result-item{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border)}.result-item:last-child{border-bottom:none}.result-label{font-size:.86rem;color:var(--text);font-weight:500}.result-value{font-size:.98rem;font-weight:700;color:var(--accent);font-family:"Courier New",Courier,monospace;text-align:right}.result-unit{font-size:.72rem;color:var(--muted);margin-left:3px;font-family:sans-serif}.highlight{background:#fef3c7;padding:5px 8px;border-radius:4px}
+.details{margin-top:28px}.details details{margin-bottom:10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}.details summary{padding:13px 16px;background:#f8f8f8;cursor:pointer;font-weight:600;font-size:.92rem;list-style:none;display:flex;align-items:center;justify-content:space-between}.details summary::-webkit-details-marker{display:none}.details summary::after{content:"+";font-size:1.15rem;color:var(--muted)}.details details[open] summary::after{content:"−"}.details summary:hover{background:#f0f0f0}.detail-content{padding:18px;background:#fff;border-top:1px solid var(--border)}.detail-row{display:flex;justify-content:space-between;gap:20px;padding:6px 0;border-bottom:1px dotted var(--border);font-size:.84rem}.detail-row:last-child{border-bottom:none}.detail-label{color:var(--text);font-weight:500}.detail-value{font-weight:600;font-family:"Courier New",Courier,monospace;color:var(--accent-h);text-align:right}.detail-heading{margin:15px 0 9px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:5px;font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.table-wrap{overflow:auto}.poly-table{width:100%;border-collapse:collapse;font-size:.73rem;margin:12px 0;font-family:"Courier New",Courier,monospace}.poly-table th,.poly-table td{border:1px solid var(--border);padding:5px 7px;text-align:right}.poly-table th{background:#f4f4f4;text-align:center;font-weight:600;color:var(--text);text-transform:uppercase;font-size:.68rem;letter-spacing:.05em}.poly-table tr:nth-child(even){background:#fafafa}.poly-table .sum-row{background:#fef3c7!important;font-weight:bold;color:var(--accent-h)}
+.check-table{width:100%;border-collapse:collapse;font-size:.82rem}.check-table th,.check-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.check-table th{font-size:.72rem;text-transform:uppercase;color:var(--muted)}.pass{color:#047857;font-weight:700}.warn-text{color:#b45309;font-weight:700}.fail{color:#b91c1c;font-weight:700}
+.footer{margin-top:50px;text-align:center;color:var(--muted);font-size:.78rem;padding-top:22px;border-top:1px solid var(--border);line-height:1.8}.muted{color:var(--muted)}
+@media(max-width:650px){h1{font-size:1.75rem}.grid,.result-grid{grid-template-columns:1fr}.container{padding:24px 14px}.summary-grid{grid-template-columns:repeat(2,1fr)}.detail-row{flex-direction:column;gap:2px}.detail-value{text-align:left}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>Marine Power & Hydrodynamics Calculator</h1>
+  <p class="subtitle">Preliminary ship resistance, propulsion, propeller matching and rudder-stock screening using Holtrop-Mennen, ITTC 1957, Wageningen B-Series polynomials and IACS/BV rule-based rudder equations. All calculations run locally in the browser.</p>
+</header>
+
+<div class="notice"><strong>Engineering-use notice:</strong> this is a preliminary design/checking tool, not a class-approved calculation. Holtrop-Mennen is statistical and its validity depends on hull-form similarity and operating range. B-Series is a model-series correlation. Rudder stock, steering gear, propeller cavitation, shafting and final engine selection require the applicable class rules and project-specific verification.</div>
+
+<div class="card">
+  <h2 class="section-title">Vessel Principal Particulars</h2>
+  <div class="grid">
+    <div class="fg"><label for="LWL">Length on Waterline (L<sub>WL</sub>)</label><input type="number" id="LWL" value="82.163" step="0.001" min="0.001"><span class="hint">m</span></div>
+    <div class="fg"><label for="LBP">Length Between Perpendiculars (L<sub>BP</sub>)</label><input type="number" id="LBP" value="78.997" step="0.001" min="0.001"><span class="hint">m. Used for LBP-based hydrostatic checks.</span></div>
+    <div class="fg"><label for="B">Breadth Moulded (B)</label><input type="number" id="B" value="12.74" step="0.01" min="0.01"><span class="hint">m</span></div>
+    <div class="fg"><label for="T">Mean Draught (T)</label><input type="number" id="T" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+    <div class="fg"><label for="TF">Forward Draught (T<sub>F</sub>)</label><input type="number" id="TF" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+    <div class="fg"><label for="TA">Aft Draught (T<sub>A</sub>)</label><input type="number" id="TA" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+    <div class="fg"><label for="nabla">Displacement Volume (∇)</label><input type="number" id="nabla" value="3049.458" step="0.001" min="0.001"><span class="hint">m³</span></div>
+    <div class="fg"><label for="V">Service Speed (V)</label><input type="number" id="V" value="11" step="0.1" min="0.1"><span class="hint">knots</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Hull Form Coefficients</h2>
+  <div class="grid">
+    <div class="fg"><label for="CB">Block Coefficient (C<sub>B</sub>)</label><input type="number" id="CB" value="0.7283" step="0.0001" min="0.01" max="1"><span class="formula">C<sub>B</sub> = ∇/(L<sub>WL</sub>BT)</span></div>
+    <div class="fg"><label for="CM">Midship Section Coefficient (C<sub>M</sub>)</label><input type="number" id="CM" value="0.986" step="0.0001" min="0.01" max="1"><span class="hint">Validated against A<sub>M</sub>/(BT).</span></div>
+    <div class="fg"><label for="CWP">Waterplane Area Coefficient (C<sub>WP</sub>)</label><input type="number" id="CWP" value="0.891" step="0.0001" min="0.01" max="1"></div>
+    <div class="fg"><label for="AM">Midship Section Area (A<sub>M</sub>)</label><input type="number" id="AM" value="50.24656" step="0.00001" min="0.001"><span class="hint">m². Default is consistent with C<sub>M</sub>=0.986, B=12.74, T=4.</span></div>
+    <div class="fg"><label for="AT">Immersed Transom Area (A<sub>T</sub>)</label><input type="number" id="AT" value="6" step="0.1" min="0"><span class="hint">m² at zero speed reference condition.</span></div>
+    <div class="fg"><label for="ABT">Transverse Bulb Area (A<sub>BT</sub>)</label><input type="number" id="ABT" value="0" step="0.1" min="0"><span class="hint">m². Use 0 for no bulb.</span></div>
+    <div class="fg"><label for="hB">Bulb Centre Height (h<sub>B</sub>)</label><input type="number" id="hB" value="0" step="0.1" min="0"><span class="hint">m above keel</span></div>
+    <div class="fg"><label for="lcbPct">LCB Position Forward of 0.5L</label><input type="number" id="lcbPct" value="1.01" step="0.01"><span class="hint">% of L<sub>WL</sub>. The former 2.02% of L/2 input is equivalent to 1.01% of L.</span></div>
+    <div class="fg"><label for="Cstern">Stern Shape Parameter (C<sub>stern</sub>)</label><select id="Cstern"><option value="0">Normal section (0)</option><option value="-10">U-shaped / Hogner stern (-10)</option><option value="10">V-shaped sections (+10)</option><option value="-25">Pram with gondola (-25)</option></select><span class="hint">Holtrop convention; verify the actual stern classification.</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Propeller Particulars</h2>
+  <div class="grid">
+    <div class="fg"><label for="D">Propeller Diameter (D)</label><input type="number" id="D" value="1.75" step="0.01" min="0.05"><span class="hint">m</span></div>
+    <div class="fg"><label for="Z">Number of Blades (Z)</label><input type="number" id="Z" value="4" step="1" min="2" max="7"></div>
+    <div class="fg"><label for="PD">Pitch Ratio (P/D)</label><input type="number" id="PD" value="1.3" step="0.01" min="0.1" max="2.5"><span class="hint">B-Series nominal range ≈ 0.6–1.4; values outside are warned.</span></div>
+    <div class="fg"><label for="AeAo">Expanded Blade Area Ratio (A<sub>E</sub>/A<sub>O</sub>)</label><input type="number" id="AeAo" value="0.5035" step="0.0001" min="0.1" max="1.5"><span class="hint">B-Series nominal range ≈ 0.30–1.05.</span></div>
+    <div class="fg"><label for="shaftType">Shaft Configuration</label><select id="shaftType"><option value="twin">Twin-Screw</option><option value="single">Single-Screw</option></select></div>
+    <div class="fg"><label for="shaftCount">Number of Propellers</label><input type="number" id="shaftCount" value="2" step="1" min="1" max="4"><span class="hint">Used explicitly for vessel-wide thrust/power accounting. For standard single/twin Holtrop correlations this is synchronized to shaft configuration.</span></div>
+    <div class="fg"><label for="c075R">Propeller Chord at 0.75R (c<sub>0.75R</sub>)</label><input type="number" id="c075R" value="0.447" step="0.001" min="0"><span class="hint">m. Use 0 to disable full-scale Reynolds correction. Auto estimate ≈ 2.073(A<sub>E</sub>/A<sub>O</sub>)D/Z.</span></div>
+    <div class="fg checkbox"><input type="checkbox" id="useReCorrection"><label for="useReCorrection">Apply B-Series Reynolds correction above 2×10⁶</label></div>
+  </div>
+  <div class="status info" id="propStatus"><strong>B-Series scope:</strong>&nbsp; polynomial and Reynolds-correction outputs are screened against their published domain; they are not a substitute for a full propeller cavitation/strength analysis.</div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Rudder Particulars — IACS UR S10 / BV-oriented Screening</h2>
+  <div class="grid">
+    <div class="fg"><label for="rud_h">Mean Rudder Height (b)</label><input type="number" id="rud_h" value="7" step="0.1" min="0.1"><span class="hint">m. Used in λ = b²/A<sub>t</sub>.</span></div>
+    <div class="fg"><label for="rud_b">Mean Rudder Breadth (c)</label><input type="number" id="rud_b" value="4" step="0.1" min="0.1"><span class="hint">m. Mean breadth of the rudder area.</span></div>
+    <div class="fg"><label for="rud_AR">Rudder Blade Area (A)</label><input type="number" id="rud_AR" value="28.3689" step="0.001" min="0.001"><span class="hint">m²</span></div>
+    <div class="fg"><label for="rud_At">Area Within Mean Height (A<sub>t</sub>)</label><input type="number" id="rud_At" value="28.3689" step="0.001" min="0.001"><span class="hint">m². Include rudder post/horn area within height b where applicable.</span></div>
+    <div class="fg"><label for="rud_AF">Area Afore Stock (A<sub>f</sub>)</label><input type="number" id="rud_AF" value="8.3" step="0.1" min="0"><span class="hint">m²</span></div>
+    <div class="fg"><label for="rud_profile">Rudder Profile</label><select id="rud_profile"><option value="naca">NACA-00 / Gottingen</option><option value="flat">Flat side</option><option value="hollow">Hollow</option><option value="highlift">High lift</option><option value="fishtail">Fish tail</option><option value="singleplate">Single plate</option><option value="mixed">Mixed profile (e.g. HSVA)</option></select></div>
+    <div class="fg"><label for="rud_k3">K<sub>3</sub> Rudder Installation Factor</label><select id="rud_k3"><option value="0.8">0.80 — Outside propeller jet</option><option value="1" selected>1.00 — Otherwise</option><option value="1.15">1.15 — Behind fixed propeller nozzle</option></select></div>
+    <div class="fg"><label for="rud_k">Material Factor (k)</label><input type="number" id="rud_k" value="1" step="0.01" min="0.1"><span class="hint">For the stock equation; k=1 corresponds to the 235 N/mm² reference basis.</span></div>
+    <div class="fg"><label for="rud_MB">Bending Moment at Stock Section (M)</label><input type="number" id="rud_MB" value="0" step="100" min="0"><span class="hint">N·m. Project/class structural calculation input; not inferred here.</span></div>
+    <div class="fg"><label for="rud_VA">Maximum Ahead Service Speed</label><input type="number" id="rud_VA" value="11" step="0.1" min="0.1"><span class="hint">knots. If below 10 kn, the rule speed substitution is applied.</span></div>
+    <div class="fg"><label for="rud_VD">Maximum Astern Speed</label><input type="number" id="rud_VD" value="5" step="0.1" min="0"><span class="hint">knots. Effective astern speed is max(input, 0.5 × ahead service speed).</span></div>
+  </div>
+  <div class="status warn" id="rudderStatus"><strong>Rule scope:</strong>&nbsp; rudder-force/torque equations follow the ordinary rudder form. Semi-spade cut-outs require area-partition pressure distribution. Current BV NR467 defines maximum ahead service speed as the greatest speed the ship is designed to maintain at deepest seagoing draught, and maximum astern speed from designed maximum astern power.</div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Environmental & Efficiency Parameters</h2>
+  <div class="grid">
+    <div class="fg"><label for="rho">Water Density (ρ)</label><input type="number" id="rho" value="1025" step="1" min="1"><span class="hint">kg/m³. 1025 is a common seawater design value.</span></div>
+    <div class="fg"><label for="nu">Kinematic Viscosity (ν)</label><input type="number" id="nu" value="0.00000119" step="0.00000001" min="1e-8"><span class="hint">m²/s. Adjust for actual water temperature/salinity.</span></div>
+    <div class="fg"><label for="etaS">Shafting Efficiency (η<sub>S</sub>)</label><input type="number" id="etaS" value="0.99" step="0.01" min="0.8" max="1"></div>
+    <div class="fg"><label for="margin">Sea Margin / Engine Reserve (%)</label><input type="number" id="margin" value="15" step="1" min="0" max="50"><span class="hint">Design/project input, not an H–M constant.</span></div>
+    <div class="fg"><label for="SAPP">Appendage Wetted Area (S<sub>APP</sub>)</label><input type="number" id="SAPP" value="5.478" step="0.001" min="0"><span class="hint">m²</span></div>
+    <div class="fg"><label for="k2">Appendage Resistance Factor (1+k<sub>2</sub>)</label><input type="number" id="k2" value="2.8" step="0.1" min="0"><span class="hint">Example: twin-screw balance rudders ≈ 2.8 in H–M guidance.</span></div>
+  </div>
+</div>
+
+<div style="text-align:center;margin:35px 0">
+  <button class="btn accent" id="calcBtn" type="button" style="padding:14px 60px;font-size:1.05rem">Execute Hydrodynamic Calculations</button>
+  <button class="btn" id="resetBtn" type="button" style="margin-left:12px">Reset to Defaults</button>
+  <button class="btn" id="exportBtn" type="button" style="margin-left:12px">Export Technical Report</button>
+</div>
+
+<div id="resultsSection" class="results-section">
+  <div class="card">
+    <h2 class="section-title">Hydrodynamic Calculation Results</h2>
+    <div class="summary-box">
+      <h3>Power Requirements Synthesis</h3>
+      <div class="summary-grid">
+        <div class="summary-item"><div class="summary-label">Total Resistance</div><div class="summary-value" id="sumRtotal">-</div><div class="summary-unit">kN</div></div>
+        <div class="summary-item"><div class="summary-label">Effective Power</div><div class="summary-value" id="sumPE">-</div><div class="summary-unit">kW</div></div>
+        <div class="summary-item"><div class="summary-label">Shaft Power</div><div class="summary-value" id="sumPS">-</div><div class="summary-unit">kW</div></div>
+        <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengine">-</div><div class="summary-unit">kW</div></div>
+        <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengineHP">-</div><div class="summary-unit">HP</div></div>
+      </div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-card"><h3>Hull Parameters</h3>
+        <div class="result-item"><span class="result-label">Froude Number (F<sub>n</sub>)</span><span class="result-value" id="rFn"></span></div>
+        <div class="result-item"><span class="result-label">Block Coefficient (C<sub>B</sub>)</span><span class="result-value" id="rCB"></span></div>
+        <div class="result-item"><span class="result-label">Midship Coefficient (C<sub>M</sub>)</span><span class="result-value" id="rCM"></span></div>
+        <div class="result-item"><span class="result-label">Prismatic Coefficient (C<sub>P</sub>)</span><span class="result-value" id="rCP"></span></div>
+        <div class="result-item"><span class="result-label">Wetted Surface (S)</span><span class="result-value" id="rS"></span><span class="result-unit">m²</span></div>
+        <div class="result-item"><span class="result-label">Reynolds Number (R<sub>n</sub>)</span><span class="result-value" id="rRN"></span></div>
+        <div class="result-item"><span class="result-label">Ship Speed</span><span class="result-value" id="rVm"></span><span class="result-unit">m/s</span></div>
+        <div class="result-item"><span class="result-label">Length of Run (L<sub>R</sub>)</span><span class="result-value" id="rLR"></span><span class="result-unit">m</span></div>
+      </div>
+      <div class="result-card"><h3>Resistance Components</h3>
+        <div class="result-item"><span class="result-label">Frictional Resistance</span><span class="result-value" id="rRF"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Viscous Form Factor</span><span class="result-value" id="rk1"></span></div>
+        <div class="result-item"><span class="result-label">Appendage Resistance</span><span class="result-value" id="rRAPP"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Wave Resistance</span><span class="result-value" id="rRW"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Bulb Resistance</span><span class="result-value" id="rRB"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Transom Resistance</span><span class="result-value" id="rRTR"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Correlation Resistance</span><span class="result-value" id="rRA"></span><span class="result-unit">kN</span></div>
+        <div class="result-item highlight"><span class="result-label"><strong>Total Resistance</strong></span><span class="result-value" id="rRtotal"></span><span class="result-unit">kN</span></div>
+      </div>
+      <div class="result-card"><h3>Propulsion Factors</h3>
+        <div class="result-item"><span class="result-label">Wake Fraction (w)</span><span class="result-value" id="rw"></span></div>
+        <div class="result-item"><span class="result-label">Thrust Deduction (t)</span><span class="result-value" id="rt"></span></div>
+        <div class="result-item"><span class="result-label">Hull Efficiency (η<sub>H</sub>)</span><span class="result-value" id="retaH"></span></div>
+        <div class="result-item"><span class="result-label">Relative Rotative Efficiency (η<sub>R</sub>)</span><span class="result-value" id="retaR"></span></div>
+        <div class="result-item"><span class="result-label">Open Water Efficiency (η<sub>O</sub>)</span><span class="result-value" id="retaO"></span></div>
+        <div class="result-item"><span class="result-label">Quasi-Propulsive Coefficient (η<sub>D</sub>)</span><span class="result-value" id="retaD"></span></div>
+      </div>
+      <div class="result-card"><h3>Propeller Operating Point</h3>
+        <div class="result-item"><span class="result-label">Total Required Thrust</span><span class="result-value" id="rT"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Thrust per Propeller</span><span class="result-value" id="rTper"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Velocity of Advance (V<sub>A</sub>)</span><span class="result-value" id="rVA"></span><span class="result-unit">knots</span></div>
+        <div class="result-item"><span class="result-label">Advance Coefficient (J)</span><span class="result-value" id="rJ"></span></div>
+        <div class="result-item"><span class="result-label">Rotational Frequency (n)</span><span class="result-value" id="rn"></span><span class="result-unit">rev/s</span></div>
+        <div class="result-item"><span class="result-label">Rotational Speed (N)</span><span class="result-value" id="rRPM"></span><span class="result-unit">RPM</span></div>
+        <div class="result-item"><span class="result-label">Thrust Coefficient (K<sub>T</sub>)</span><span class="result-value" id="rKT"></span></div>
+        <div class="result-item"><span class="result-label">Torque Coefficient (K<sub>Q</sub>)</span><span class="result-value" id="rKQ"></span></div>
+        <div class="result-item"><span class="result-label">Thrust Balance Error</span><span class="result-value" id="rThrustError"></span><span class="result-unit">%</span></div>
+      </div>
+      <div class="result-card"><h3>Power Chain</h3>
+        <div class="result-item"><span class="result-label">Effective Power (P<sub>E</sub>)</span><span class="result-value" id="rPE"></span><span class="result-unit">kW</span></div>
+        <div class="result-item"><span class="result-label">Delivered Power (P<sub>D</sub>)</span><span class="result-value" id="rPD"></span><span class="result-unit">kW</span></div>
+        <div class="result-item"><span class="result-label">Total Shaft Power</span><span class="result-value" id="rPS"></span><span class="result-unit">kW</span></div>
+        <div class="result-item"><span class="result-label">Shaft Power / Propeller</span><span class="result-value" id="rPSper"></span><span class="result-unit">kW</span></div>
+        <div class="result-item highlight"><span class="result-label"><strong>Engine Power + Margin</strong></span><span class="result-value" id="rPengine"></span><span class="result-unit">kW</span></div>
+        <div class="result-item"><span class="result-label">Engine Power + Margin</span><span class="result-value" id="rPengineHP"></span><span class="result-unit">HP</span></div>
+      </div>
+      <div class="result-card"><h3>Rudder / Stock Screening</h3>
+        <div class="result-item"><span class="result-label">Aspect Ratio (λ)</span><span class="result-value" id="r_lam"></span></div>
+        <div class="result-item"><span class="result-label">K<sub>1</sub> Aspect Factor</span><span class="result-value" id="r_k1r"></span></div>
+        <div class="result-item"><span class="result-label">Ahead Design Force</span><span class="result-value" id="r_CR_a"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Astern Design Force</span><span class="result-value" id="r_CR_d"></span><span class="result-unit">kN</span></div>
+        <div class="result-item"><span class="result-label">Ahead Torque</span><span class="result-value" id="r_M_a"></span><span class="result-unit">kN·m</span></div>
+        <div class="result-item"><span class="result-label">Astern Torque</span><span class="result-value" id="r_M_d"></span><span class="result-unit">kN·m</span></div>
+        <div class="result-item highlight"><span class="result-label"><strong>Design Torque</strong></span><span class="result-value" id="r_M_design"></span><span class="result-unit">kN·m</span></div>
+        <div class="result-item highlight"><span class="result-label"><strong>Stock Diameter Screening</strong></span><span class="result-value" id="r_dTF"></span><span class="result-unit">mm</span></div>
+      </div>
+    </div>
+
+    <div class="details">
+      <h3 class="section-title" style="margin-top:35px">Detailed Calculation Breakdown</h3>
+      <details><summary>I. Validation & Applicability</summary><div class="detail-content" id="detailValidation"></div></details>
+      <details><summary>II. Hull Parameters and Holtrop-Mennen Resistance</summary><div class="detail-content" id="detailHull"></div></details>
+      <details><summary>III. Propulsion Factors and Power</summary><div class="detail-content" id="detailPropulsion"></div></details>
+      <details><summary>IV. Wageningen B-Series Propeller Matching</summary><div class="detail-content" id="detailPropeller"></div></details>
+      <details><summary>V. Rudder Force, Torque and Stock Screening</summary><div class="detail-content" id="detailRudder"></div></details>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>&copy; Marine Power & Hydrodynamics Calculator v3. All calculations execute locally within the browser.</p>
+  <p>Primary methodology: Holtrop & Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial correlations, and IACS UR S10 / corresponding class-rule concepts for rudder force and stock screening.</p>
+  <p>Current BV NR467 January 2026 defines maximum ahead service speed and maximum astern speed for steering/rudder considerations; consult the official class PDF for the applicable ship and notation.</p>
+</footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const g=9.81;
+const KNOT_MS=1852/3600;
+const KW_TO_HP=1.34102209;
+
+// Wageningen B-series coefficients. Layout: [C,s,t,u,v].
+const kT_coeffs=[
+[0.00880496,0,0,0,0],[-0.204554,1,0,0,0],[0.166351,0,1,0,0],[0.158114,0,2,0,0],[-0.147581,2,0,1,0],[-0.481497,1,1,1,0],[0.415437,0,2,1,0],[0.0144043,0,0,0,1],[-0.0530054,2,0,0,1],[0.0143481,0,1,0,1],[0.0606826,1,1,0,1],[-0.0125894,0,0,1,1],[0.0109689,1,0,1,1],[-0.133698,0,3,0,0],[0.00638407,0,6,0,0],[-0.00132718,2,6,0,0],[0.168496,3,0,1,0],[-0.0507214,0,0,2,0],[0.0854559,2,0,2,0],[-0.0504475,3,0,2,0],[0.010465,1,6,2,0],[-0.00648272,2,6,2,0],[-0.00841728,0,3,0,1],[0.0168424,1,3,0,1],[-0.00102296,3,3,0,1],[-0.0317791,0,3,1,1],[0.018604,1,0,2,1],[-0.00410798,0,2,2,1],[-0.000606848,0,0,0,2],[-0.0049819,1,0,0,2],[0.0025983,2,0,0,2],[-0.000560528,3,0,0,2],[-0.00163652,1,2,0,2],[-0.000328787,1,6,0,2],[0.000116502,2,6,0,2],[0.000690904,0,0,1,2],[0.00421749,0,3,1,2],[0.0000565229,3,6,1,2],[-0.00146564,0,3,2,2]
+];
+const kQ_coeffs=[
+[0.00379368,0,0,0,0],[0.00886523,2,0,0,0],[-0.032241,1,1,0,0],[0.00344778,0,2,0,0],[-0.0408811,0,1,1,0],[-0.108009,1,1,1,0],[-0.0885381,2,1,1,0],[0.188561,0,2,1,0],[-0.00370871,1,0,0,1],[0.00513696,0,1,0,1],[0.0209449,1,1,0,1],[0.00474319,2,1,0,1],[-0.00723408,2,0,1,1],[0.00438388,1,1,1,1],[-0.0269403,0,2,1,1],[0.0558082,3,0,1,0],[0.0161886,0,3,1,0],[0.00318086,1,3,1,0],[0.015896,0,0,2,0],[0.0471729,1,0,2,0],[0.0196283,3,0,2,0],[-0.0502782,0,1,2,0],[-0.030055,3,1,2,0],[0.0417122,2,2,2,0],[-0.0397722,0,3,2,0],[-0.00350024,0,6,2,0],[-0.0106854,3,0,0,1],[0.00110903,3,3,0,1],[-0.000313912,0,6,0,1],[0.0035985,3,0,1,1],[-0.00142121,0,6,1,1],[-0.00383637,1,0,2,1],[0.0126803,0,2,2,1],[-0.00318278,2,3,2,1],[0.00334268,0,6,2,1],[-0.00183491,1,1,0,2],[0.000112451,3,2,0,2],[-0.0000297228,3,6,0,2],[0.000269551,1,0,1,2],[0.00083265,2,0,1,2],[0.00155334,0,2,1,2],[0.000302683,0,6,1,2],[-0.0001843,0,0,2,2],[-0.000425399,0,3,2,2],[0.0000869243,3,3,2,2],[-0.0004659,0,6,2,2],[0.0000554194,1,6,2,2]
+];
+
+const rudderK2={
+ naca:{name:'NACA-00 / Gottingen',ahead:1.10,astern:0.80},
+ flat:{name:'Flat side',ahead:1.10,astern:0.90},
+ hollow:{name:'Hollow',ahead:1.35,astern:0.90},
+ highlift:{name:'High lift',ahead:1.70,astern:1.30},
+ fishtail:{name:'Fish tail',ahead:1.40,astern:0.80},
+ singleplate:{name:'Single plate',ahead:1.00,astern:1.00},
+ mixed:{name:'Mixed profile (e.g. HSVA)',ahead:1.21,astern:0.90}
+};
+
+function val(id){const n=parseFloat($(id).value);return Number.isFinite(n)?n:NaN;}
+function fmt(x,d=3){if(!Number.isFinite(x))return '—';if(Math.abs(x)<0.0005&&x!==0)return x.toExponential(3);return x.toFixed(d);}
+function sci(x,s=4){return Number.isFinite(x)?x.toExponential(s):'—';}
+function setText(id,x,d=3){$(id).textContent=typeof x==='string'?x:fmt(x,d);}
+function addStatus(el,kind,html){el.className='status '+kind;el.innerHTML=html;}
+function polyValue(coeffs,J,PD,EAR,Z){let sum=0,terms=[];for(let i=0;i<coeffs.length;i++){const[c,s,t,u,v]=coeffs[i];const term=c*Math.pow(J,s)*Math.pow(PD,t)*Math.pow(EAR,u)*Math.pow(Z,v);sum+=term;terms.push({i:i+1,c,s,t,u,v,term});}return{sum,terms};}
+function autoChord(D,EAR,Z){return 2.073*EAR*D/Z;}
+
+function reynoldsCorrection(J,PD,EAR,Z,Re075,enabled){
+  if(!enabled||!Number.isFinite(Re075)||Re075<2e6)return{dKT:0,dKQ:0,active:false,reason:Re075<2e6?'Re0.75R < 2×10⁶':'not available'};
+  if(Re075>2e9)return{dKT:0,dKQ:0,active:false,reason:'Re0.75R > 2×10⁹; outside published correction range'};
+  // Published polynomial uses log10(Re_n) - 0.301, with Re_n supplied as an absolute Reynolds number.
+  const x=Math.log10(Re075)-0.301;
+  const dKT=0.000353485
+    -0.00333758*EAR*J*J
+    -0.00478125*EAR*PD*J
+    +0.000257792*x*x*EAR*J*J
+    +0.0000643192*x*Math.pow(PD,6)*J*J
+    -0.0000110636*x*x*Math.pow(PD,6)*J*J
+    -0.0000276305*x*x*Z*EAR*J*J
+    +0.0000954*x*Z*EAR*PD*J
+    +0.0000032049*x*Z*Z*EAR*Math.pow(PD,3)*J;
+  const dKQ=-0.000591412
+    +0.00696898*PD
+    -0.0000666654*Z*Math.pow(PD,6)
+    +0.0160818*EAR*EAR
+    -0.000938091*x*PD
+    -0.00059593*x*PD*PD
+    +0.0000782099*x*x*PD*PD
+    +0.0000052199*x*Z*EAR*J*J
+    -0.00000088528*x*x*Z*EAR*PD*J
+    +0.0000230171*x*Z*Math.pow(PD,6)
+    -0.00000184341*x*x*Z*Math.pow(PD,6)
+    -0.00400252*x*EAR*EAR
+    +0.000220915*x*x*EAR*EAR;
+  return{dKT,dKQ,active:true,reason:'Applied'};
+}
+
+function resistanceWave(p){
+  const{L,B,T,TF,nabla,CP,CB,CM,CWP,ABT,hB,AT,Cstern,Fn,LR,V,rho,lcbFrac}=p;
+  const BL=B/L;
+  const c7=BL<0.11?0.229577*Math.pow(BL,1/3):BL<=0.25?BL:0.5-0.0625*(L/B);
+  const ie=1+89*Math.exp(-Math.pow(L/B,0.80856)*Math.pow(1-CWP,0.30484)*Math.pow(1-CP-0.0225*lcbFrac,0.6367)*Math.pow(LR/B,0.34574)*Math.pow(100*nabla/Math.pow(L,3),0.16302));
+  const c1=2223105*Math.pow(c7,3.78613)*Math.pow(T/B,1.07961)*Math.pow(90-ie,-1.37565);
+  let c3=0,c2=1,pb=0,Fni=0,RB=0;
+  if(ABT>0){
+    const denom=B*T*(0.31*Math.sqrt(ABT)+TF-hB);
+    if(denom<=0)throw new Error('Bulb inputs make the C3 denominator non-positive. Check TF, hB and ABT.');
+    c3=0.56*Math.pow(ABT,1.5)/denom;
+    c2=Math.exp(-1.89*Math.sqrt(c3));
+    pb=0.56*Math.sqrt(ABT)/(TF-1.5*hB);
+    if(!Number.isFinite(pb)||pb<=0)throw new Error('Invalid bulb emergence parameter PB.');
+    const rad=g*(TF-hB-0.25*Math.sqrt(ABT))+0.15*V*V;
+    if(rad<=0)throw new Error('Invalid bulb immersion Froude denominator.');
+    Fni=V/Math.sqrt(rad);
+    RB=0.11*Math.exp(-3/Math.pow(pb,2))*Math.pow(Fni,3)*Math.pow(ABT,1.5)*rho*g/(1+Fni*Fni);
+  }
+  const c5=AT>0?1-0.8*AT/(B*T*CM):1;
+  const CP16=CP<0.8?(8.07981*CP-13.8673*CP*CP+6.984388*Math.pow(CP,3)):(1.73014-0.7067*CP);
+  const ratio=L**3/nabla;
+  const c15=ratio<512?-1.69385:(ratio<=1727?-1.69385+(L/Math.cbrt(nabla)-8)/2.36:0);
+  const m1=0.0140407*L/T-1.75254*(Math.cbrt(nabla)/L)-4.79323*B/L-CP16;
+  const m2f=f=>c15*CP*CP*Math.exp(-0.1/(f*f));
+  const m3=-7.2035*Math.pow(B/L,0.326869)*Math.pow(T/B,0.605375);
+  const m4f=f=>c15*0.4*Math.exp(-0.034*Math.pow(f,-3.29));
+  const lambda=L/B<12?(1.446*CP-0.03*(L/B)):(1.446*CP-0.36);
+  const pref=nabla*rho*g;
+  const waveA=f=>c1*c2*c5*pref*Math.exp(m1*Math.pow(f,-0.9)+m2f(f)*Math.cos(lambda/(f*f)));
+  const c17=6919.3*Math.pow(CM,-1.3346)*Math.pow(nabla/L**3,2.00977)*Math.pow((L/B)-2,1.40692);
+  const waveB=f=>c17*c2*c5*pref*Math.exp(m3*Math.pow(f,-0.9)+m4f(f)*Math.cos(lambda/(f*f)));
+  let RW,region,endpointA,endpointB;
+  if(Fn<=0.4){RW=waveA(Fn);region='A: Fn ≤ 0.40';endpointA=waveA(0.4);endpointB=waveB(0.55);}
+  else if(Fn<0.55){endpointA=waveA(0.4);endpointB=waveB(0.55);RW=endpointA+(10*Fn-4)*(endpointB-endpointA)/1.5;region='Interpolation: 0.40 < Fn < 0.55';}
+  else{RW=waveB(Fn);endpointA=waveA(0.4);endpointB=waveB(0.55);region='B: Fn ≥ 0.55';}
+  let FnT=0,c6=0,RTR=0;
+  if(AT>0){const den=2*g*AT/(B+B*CWP);if(den<=0)throw new Error('Invalid transom Froude denominator.');FnT=V/Math.sqrt(den);c6=FnT<5?0.2*(1-0.2*FnT):0;RTR=0.5*rho*V*V*AT*c6;}
+  return{RW,RB,RTR,c7,ie,c1,c2,c3,c5,c6,FnT,c15,CP16,m1,m3,m2At04:m2f(.4),m4At55:m4f(.55),lambda,c17,region,pb,Fni,endpointA,endpointB};
+}
+
+function singleScrewWake(p){
+  const{L,B,T,TA,D,S,CP,CB,CV,Cstern,EAR,lcbFrac}=p;
+  const BT=B/TA;
+  const c8=BT<=5?B*S/(L*D*TA):S*(7*BT-25)/(L*D*(BT-3));
+  const c9=c8<28?c8:32-16/(c8-24);
+  const c11=TA/D<2?TA/D:(0.0833333*Math.pow(TA/D,3)+1.33333);
+  const cp1=1.45*CP-0.315-0.0225*lcbFrac;
+  const d1=1-cp1,d2=.95-CP,d3=.95-CB;
+  if(d1<=0||d2<=0||d3<=0)throw new Error('Single-screw Holtrop wake formula has a non-positive denominator; check hull coefficients.');
+  const w=c9*CV*(L/TA)*(0.0661875+1.21756*c11*CV/d1)
+    +0.24558*Math.sqrt(B/(L*d1))
+    -0.09726/d2+0.11434/d3+0.75*Cstern*CV+0.002*Cstern;
+  const c10=L/B>5.2?B/L:0.25-0.003328402/(B/L-0.134615385);
+  const t=0.001979*L/(B-B*cp1)+1.0585*c10-0.00524-0.1418*D*D/(B*T)+0.0015*Cstern;
+  const etaR=0.9922-0.05908*EAR+0.07424*(CP-0.0225*lcbFrac);
+  return{w,t,etaR,c8,c9,c11,cp1,c10};
+}
+
+function effectiveRudderSpeedAhead(V){return V<10?(V+20)/3:V;}
+function effectiveRudderSpeedAstern(V,VAstern){return Math.max(VAstern,0.5*V);}
+
+function calculateCore(){
+  const p={
+    L:val('LWL'),LBP:val('LBP'),B:val('B'),T:val('T'),TF:val('TF'),TA:val('TA'),nabla:val('nabla'),Vkn:val('V'),
+    CB:val('CB'),CM:val('CM'),CWP:val('CWP'),AM:val('AM'),AT:val('AT'),ABT:val('ABT'),hB:val('hB'),lcbPct:val('lcbPct'),Cstern:val('Cstern'),
+    D:val('D'),Z:val('Z'),PD:val('PD'),EAR:val('AeAo'),shaftType:$('shaftType').value,shaftCount:val('shaftCount'),c075R:val('c075R'),useRe:$('useReCorrection').checked,
+    rho:val('rho'),nu:val('nu'),etaS:val('etaS'),margin:val('margin'),SAPP:val('SAPP'),k2:val('k2'),
+    rud_h:val('rud_h'),rud_b:val('rud_b'),rud_AR:val('rud_AR'),rud_At:val('rud_At'),rud_AF:val('rud_AF'),rud_profile:$('rud_profile').value,rud_k3:val('rud_k3'),rud_k:val('rud_k'),rud_MB:val('rud_MB'),rud_VA:val('rud_VA'),rud_VD:val('rud_VD')
+  };
+  const keys=Object.entries(p).filter(([k])=>k!=='shaftType'&&k!=='rud_profile'&&k!=='useRe').map(([k])=>k);
+  for(const k of keys)if(!Number.isFinite(p[k]))throw new Error(`Missing or invalid input: ${k}`);
+  if(p.L<=0||p.LBP<=0||p.B<=0||p.T<=0||p.TF<=0||p.TA<=0||p.nabla<=0||p.Vkn<=0)throw new Error('Principal dimensions and speed must be positive.');
+  if(p.TF>p.T*1.5||p.TA>p.T*1.5)throw new Error('Forward/aft draught differs too strongly from mean draught; check the inputs.');
+  if(p.CB<=0||p.CB>1||p.CM<=0||p.CM>1||p.CWP<=0||p.CWP>1)throw new Error('C_B, C_M and C_WP must be in (0,1].');
+  if(p.Z<2||p.Z>7)throw new Error('B-Series calculation supports 2–7 blades.');
+  p.shaftCount=p.shaftType==='twin'?2:1;$('shaftCount').value=p.shaftCount;
+
+  const V=p.Vkn*KNOT_MS;
+  const Fn=V/Math.sqrt(g*p.L);
+  const CBcalc=p.nabla/(p.L*p.B*p.T);
+  const CMcalc=p.AM/(p.B*p.T);
+  const CP=p.nabla/(p.L*p.AM);
+  const lcbFrac=p.lcbPct; // H–M uses LCB as percent of L.
+  if(CP<=0||CP>=1)throw new Error('Computed C_P is outside 0–1. Check ∇, L and A_M.');
+  const denomLR=4*CP-1;
+  if(Math.abs(denomLR)<1e-10)throw new Error('Holtrop length-of-run expression is singular at C_P=0.25.');
+  const LR=p.L*(1-CP+0.06*CP*lcbFrac/denomLR);
+  if(LR<=0)throw new Error('Invalid Holtrop length of run L_R.');
+  const S=p.L*(2*p.T+p.B)*Math.sqrt(p.CM)*(0.453+0.4425*p.CB-0.2862*p.CM-0.003467*(p.B/p.T)+0.3696*p.CWP)+2.38*p.ABT/p.CB;
+  const Rn=V*p.L/p.nu;
+  const CF=0.075/Math.pow(Math.log10(Rn)-2,2);
+  const ToverL=p.T/p.L;
+  const c12=ToverL>0.05?Math.pow(ToverL,0.2228446):ToverL>0.02?48.20*Math.pow(ToverL-0.02,2.078)+0.479948:0.479948;
+  const c13=1+0.003*p.Cstern;
+  const onePlusK1=c13*(0.93+c12*Math.pow(p.B/LR,0.92497)*Math.pow(0.95-CP,-0.521448)*Math.pow(1-CP+0.0225*lcbFrac,0.6906));
+  const RF=.5*p.rho*V*V*S*CF;
+  const RAPP=.5*p.rho*V*V*p.SAPP*p.k2*CF;
+  const wave=resistanceWave({...p,V,Fn,CP,LR,lcbFrac});
+  const CA=0.006*Math.pow(p.L+100,-0.16)-0.00205+0.003*Math.sqrt(p.L/7.5)*Math.pow(p.CB,4)*wave.c2*(0.04-Math.min(p.TF/p.L,0.04));
+  const CV=onePlusK1*CF+CA;
+  let prop;
+  if(p.shaftType==='twin'){
+    const w=0.3095*p.CB+10*CV*p.CB-0.23*p.D/Math.sqrt(p.B*p.T);
+    const t=0.325*p.CB-0.1885*p.D/Math.sqrt(p.B*p.T);
+    const etaR=0.9737+0.111*(CP-0.0225*lcbFrac)-0.06325*p.PD;
+    prop={w,t,etaR,mode:'Twin-screw H–M correlation'};
+  }else{
+    prop={...singleScrewWake({L:p.L,B:p.B,T:p.T,TA:p.TA,D:p.D,S,CP,CB:p.CB,CV,Cstern:p.Cstern,EAR:p.EAR,lcbFrac}),mode:'Single-screw conventional-stern H–M correlation'};
+  }
+  const w=prop.w,t=prop.t,etaR=prop.etaR;
+  if(!(w>-0.2&&w<0.8))throw new Error(`Calculated wake fraction w=${w.toFixed(3)} is outside a plausible screening range.`);
+  if(!(t>-0.5&&t<0.8))throw new Error(`Calculated thrust deduction t=${t.toFixed(3)} is outside a plausible screening range.`);
+  const etaH=(1-t)/(1-w);
+  const VA=V*(1-w);
+  if(VA<=0)throw new Error('Velocity of advance became non-positive.');
+  const Rtotal=(RF*onePlusK1)+RAPP+wave.RW+wave.RB+wave.RTR+(.5*p.rho*V*V*S*CA);
+  const totalT=Rtotal/(1-t), Tper=totalT/p.shaftCount;
+  function solveProp(thrustPer){
+    const samples=[];const N=3000,jmin=.05,jmax=1.5;let prev=null,brackets=[];
+    const operating=J=>{
+      const n=VA/(J*p.D);
+      const Re075=p.c075R>0?p.c075R*Math.sqrt(VA*VA+Math.pow(0.75*Math.PI*n*p.D,2))/p.nu:NaN;
+      const corr=reynoldsCorrection(J,p.PD,p.EAR,p.Z,Re075,p.useRe);
+      const baseT=polyValue(kT_coeffs,J,p.PD,p.EAR,p.Z).sum;
+      const baseQ=polyValue(kQ_coeffs,J,p.PD,p.EAR,p.Z).sum;
+      const KT=baseT+corr.dKT,KQ=baseQ+corr.dKQ;
+      const requiredKT=thrustPer*J*J/(p.rho*VA*VA*p.D*p.D);
+      return{res:KT-requiredKT,J,n,Re075,baseT,baseQ,KT,KQ,corr};
+    };
+    prev=operating(jmin);samples.push(prev);
+    for(let i=1;i<=N;i++){const J=jmin+(jmax-jmin)*i/N;const cur=operating(J);samples.push(cur);if(prev.res===0||(prev.res<0&&cur.res>0)||(prev.res>0&&cur.res<0))brackets.push([prev.J,cur.J]);prev=cur;}
+    const roots=[];
+    for(const [a0,b0] of brackets){let a=a0,b=b0,fa=operating(a).res;for(let k=0;k<80;k++){const m=(a+b)/2,fm=operating(m).res;if(Math.abs(fm)<1e-11){a=b=m;break;}if((fa<0&&fm>0)||(fa>0&&fm<0))b=m;else{a=m;fa=fm;}}roots.push(operating((a+b)/2));}
+    const valid=roots.filter(r=>r.KT>0&&r.KQ>0&&r.etaO!==0);
+    if(valid.length)return valid.sort((a,b)=>b.J-a.J)[0];
+    const best=samples.filter(r=>r.KT>0&&r.KQ>0&&Number.isFinite(r.KQ)).sort((a,b)=>Math.abs(a.res)-Math.abs(b.res))[0];
+    if(!best)throw new Error('No positive B-Series operating point found within J=0.05–1.50.');
+    return best;
+  }
+  const chosen=solveProp(Tper);
+  const J=chosen.J,n=chosen.n,RPM=n*60,KT=chosen.KT,KQ=chosen.KQ,Re075=chosen.Re075,corr=chosen.corr;
+  const etaO=J/(2*Math.PI)*(KT/KQ);
+  const etaD=etaH*etaR*etaO;
+  if(!(etaO>0&&etaO<1.2))throw new Error(`Calculated open-water efficiency ηO=${etaO.toFixed(3)} is not credible.`);
+  if(!(etaD>0&&etaD<1.2))throw new Error('Calculated quasi-propulsive efficiency is non-positive or implausible.');
+  const PE=Rtotal*V/1000,PDelivered=PE/etaD,PS=PDelivered/p.etaS,PSper=PS/p.shaftCount,Pengine=PS*(1+p.margin/100),PengineHP=Pengine*KW_TO_HP;
+  const TgenPer=KT*p.rho*n*n*p.D**4,TgenTotal=TgenPer*p.shaftCount,thrustError=(TgenTotal-totalT)/totalT*100;
+
+  const rudK=rudderK2[p.rud_profile];
+  const lambdaRaw=p.rud_h*p.rud_h/p.rud_At,lambdaR=Math.min(lambdaRaw,2),K1r=(lambdaR+2)/3;
+  const VHa=effectiveRudderSpeedAhead(p.rud_VA),VHast=effectiveRudderSpeedAstern(p.rud_VA,p.rud_VD);
+  const CRa=132*K1r*rudK.ahead*p.rud_k3*p.rud_AR*VHa*VHa;
+  const CRd=132*K1r*rudK.astern*p.rud_k3*p.rud_AR*VHast*VHast;
+  const balanceRatio=p.rud_AF/p.rud_AR;
+  const rawAheadLever=p.rud_b*(0.33-balanceRatio);
+  const aheadLever=Math.max(rawAheadLever,0.1*p.rud_b);
+  const asternLever=p.rud_b*(0.66-balanceRatio);
+  const Qa=CRa*aheadLever;
+  const Qd=CRd*Math.max(0,asternLever);
+  const Qdesign=Math.max(Qa,Qd);
+  const dt=4.2*Math.cbrt(Qdesign/p.rud_k);
+  const dcAhead=dt*Math.pow(1+(4/3)*Math.pow(p.rud_MB/Math.max(Qa,1e-9),2),1/6);
+  const dcAstern=dt*Math.pow(1+(4/3)*Math.pow(p.rud_MB/Math.max(Qd,1e-9),2),1/6);
+  const dStock=Math.max(dcAhead,dcAstern);
+
+  const warnings=[];
+  if(Math.abs(p.CB-CBcalc)>0.005)warnings.push(`Entered C_B=${p.CB.toFixed(4)} differs materially from computed ${CBcalc.toFixed(4)}.`);
+  if(Math.abs(p.CM-CMcalc)>0.005)warnings.push(`Entered C_M=${p.CM.toFixed(4)} differs materially from A_M/(BT)=${CMcalc.toFixed(4)}.`);
+  if(CP<0.55||CP>0.85)warnings.push(`C_P=${CP.toFixed(4)} is outside the common Holtrop screening range ≈0.55–0.85.`);
+  if(p.L/p.B<3.9||p.L/p.B>14.9)warnings.push(`L/B=${(p.L/p.B).toFixed(2)} is outside the commonly cited H–M screening range ≈3.9–14.9; confirm your reference.`);
+  if(p.B/p.T<2.1||p.B/p.T>4.0)warnings.push(`B/T=${(p.B/p.T).toFixed(2)} is outside the commonly cited H–M screening range ≈2.1–4.0.`);
+  if(p.PD<0.6||p.PD>1.4)warnings.push(`P/D=${p.PD.toFixed(3)} is outside the nominal B-Series face-pitch range ≈0.6–1.4.`);
+  if(p.EAR<0.30||p.EAR>1.05)warnings.push(`A_E/A_O=${p.EAR.toFixed(4)} is outside the nominal B-Series range ≈0.30–1.05.`);
+  if(Math.abs(p.c075R-autoChord(p.D,p.EAR,p.Z))>0.15)warnings.push(`Entered c0.75R differs substantially from the simple H–M geometry estimate ${autoChord(p.D,p.EAR,p.Z).toFixed(3)} m.`);
+  if(Math.abs(thrustError)>0.5)warnings.push(`B-Series thrust-balance residual is ${thrustError.toFixed(2)}%; inspect the propeller operating point.`);
+  if(p.rud_AR>p.rud_At)warnings.push('Rudder blade area A exceeds A_t; check the geometry definition.');
+  if(p.rud_AF>p.rud_AR)warnings.push('Afore-stock area cannot exceed total rudder blade area.');
+  if(rawAheadLever<0.1*p.rud_b)warnings.push(`Ahead torque lever is constrained by the 0.1c minimum: raw ${rawAheadLever.toFixed(3)} m → ${aheadLever.toFixed(3)} m.`);
+  if(p.rud_VD<0.5*p.rud_VA)warnings.push(`Astern speed input ${p.rud_VD.toFixed(1)} kn is below 0.5×ahead speed; ${VHast.toFixed(1)} kn is used.`);
+  if(p.rud_MB===0)warnings.push('Bending moment M=0; stock diameter is therefore torsion-only apart from the rule torque basis.');
+  if(p.Cstern===-25)warnings.push('Cstern = −25 is a pram-with-gondola case; confirm the hull really matches this classification.');
+
+  return{p,V,Fn,CBcalc,CMcalc,CP,lcbFrac,LR,S,Rn,CF,c12,c13,onePlusK1,RF,RAPP,CV,CA,RA:.5*p.rho*V*V*S*CA,wave,Rtotal,prop,w,t,etaH,etaR,VA,totalT,Tper,J,n,RPM,KT,KQ,Re075,corr,etaO,etaD,PE,PDelivered,PS,PSper,Pengine,PengineHP,TgenPer,TgenTotal,thrustError,
+    rud:{K2Ahead:rudK.ahead,K2Astern:rudK.astern,K3:p.rud_k3,K1:K1r,lambdaRaw,lambdaR,VHa,VHast,CRa,CRd,balanceRatio,rawAheadLever,aheadLever,asternLever,Qa,Qd,Qdesign,dt,dcAhead,dcAstern,dStock,profile:rudK.name},warnings};
+}
+
+function render(r){
+  $('resultsSection').style.display='block';
+  setText('sumRtotal',r.Rtotal/1000,1);setText('sumPE',r.PE,1);setText('sumPS',r.PS,1);setText('sumPengine',r.Pengine,1);setText('sumPengineHP',r.PengineHP,0);
+  setText('rFn',r.Fn,4);setText('rCB',r.CBcalc,4);setText('rCM',r.CMcalc,4);setText('rCP',r.CP,4);setText('rS',r.S,1);setText('rRN',r.Rn,0);setText('rVm',r.V,3);setText('rLR',r.LR,2);
+  setText('rRF',r.RF/1000,2);setText('rk1',r.onePlusK1,4);setText('rRAPP',r.RAPP/1000,2);setText('rRW',r.wave.RW/1000,2);setText('rRB',r.wave.RB/1000,2);setText('rRTR',r.wave.RTR/1000,2);setText('rRA',r.RA/1000,2);setText('rRtotal',r.Rtotal/1000,2);
+  setText('rw',r.w,4);setText('rt',r.t,4);setText('retaH',r.etaH,4);setText('retaR',r.etaR,4);setText('retaO',r.etaO,4);setText('retaD',r.etaD,4);
+  setText('rT',r.totalT/1000,2);setText('rTper',r.Tper/1000,2);setText('rVA',r.VA/KNOT_MS,2);setText('rJ',r.J,4);setText('rn',r.n,3);setText('rRPM',r.RPM,0);setText('rKT',r.KT,5);setText('rKQ',r.KQ,5);setText('rThrustError',r.thrustError,3);
+  setText('rPE',r.PE,1);setText('rPD',r.PDelivered,1);setText('rPS',r.PS,1);setText('rPSper',r.PSper,1);setText('rPengine',r.Pengine,1);setText('rPengineHP',r.PengineHP,0);
+  setText('r_lam',r.rud.lambdaR,4);setText('r_k1r',r.rud.K1,4);setText('r_CR_a',r.rud.CRa/1000,2);setText('r_CR_d',r.rud.CRd/1000,2);setText('r_M_a',r.rud.Qa/1000,2);setText('r_M_d',r.rud.Qd/1000,2);setText('r_M_design',r.rud.Qdesign/1000,2);setText('r_dTF',r.rud.dStock,2);
+
+  const check=(name,value,note)=>`<tr><td>${name}</td><td class="${value?'pass':'fail'}">${value?'PASS':'CHECK'}</td><td>${note}</td></tr>`;
+  const domainRows=[];
+  domainRows.push(check('C_B consistency',Math.abs(r.p.CB-r.CBcalc)<=0.005,`Entered ${fmt(r.p.CB,4)}, computed ${fmt(r.CBcalc,4)}.`));
+  domainRows.push(check('C_M consistency',Math.abs(r.p.CM-r.CMcalc)<=0.005,`Entered ${fmt(r.p.CM,4)}, computed ${fmt(r.CMcalc,4)}.`));
+  domainRows.push(check('C_P screening',r.CP>=0.55&&r.CP<=0.85,`C_P = ${fmt(r.CP,4)}; common H–M screening band ≈0.55–0.85.`));
+  domainRows.push(check('L/B screening',r.p.L/r.p.B>=3.9&&r.p.L/r.p.B<=14.9,`L/B = ${fmt(r.p.L/r.p.B,2)}.`));
+  domainRows.push(check('B/T screening',r.p.B/r.p.T>=2.1&&r.p.B/r.p.T<=4.0,`B/T = ${fmt(r.p.B/r.p.T,2)}.`));
+  domainRows.push(check('B-Series P/D',r.p.PD>=0.6&&r.p.PD<=1.4,`P/D = ${fmt(r.p.PD,3)}; nominal range ≈0.6–1.4.`));
+  domainRows.push(check('B-Series A_E/A_O',r.p.EAR>=0.30&&r.p.EAR<=1.05,`A_E/A_O = ${fmt(r.p.EAR,4)}; nominal range ≈0.30–1.05.`));
+  domainRows.push(check('Thrust balance',Math.abs(r.thrustError)<=0.5,`Residual = ${fmt(r.thrustError,3)}%.`));
+  $('detailValidation').innerHTML=`<table class="check-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>${domainRows.join('')}</tbody></table><div class="status ${r.warnings.length?'warn':'ok'}"><strong>${r.warnings.length?'Warnings':'Checks passed'}:</strong>&nbsp; ${r.warnings.length?r.warnings.map(x=>`<div>${x}</div>`).join(''): 'No screening warnings were triggered for the current inputs.'}</div>`;
+
+  $('detailHull').innerHTML=`
+    <div class="detail-row"><span class="detail-label">Ship speed:</span><span class="detail-value">${r.p.Vkn} kn = ${r.V.toFixed(4)} m/s</span></div>
+    <div class="detail-row"><span class="detail-label">Froude number:</span><span class="detail-value">V/√(gL) = ${r.Fn.toFixed(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">C_B:</span><span class="detail-value">${r.CBcalc.toFixed(5)} (entered ${r.p.CB})</span></div>
+    <div class="detail-row"><span class="detail-label">C_M:</span><span class="detail-value">A_M/(BT) = ${r.CMcalc.toFixed(5)} (entered ${r.p.CM})</span></div>
+    <div class="detail-row"><span class="detail-label">C_P:</span><span class="detail-value">∇/(L×A_M) = ${r.CP.toFixed(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">LCB:</span><span class="detail-value">${r.lcbFrac.toFixed(3)} % of L forward of 0.5L</span></div>
+    <div class="detail-row"><span class="detail-label">L_R:</span><span class="detail-value">${r.LR.toFixed(3)} m</span></div>
+    <div class="detail-row"><span class="detail-label">Wetted area:</span><span class="detail-value">${r.S.toFixed(2)} m²</span></div>
+    <div class="detail-row"><span class="detail-label">Reynolds number:</span><span class="detail-value">${sci(r.Rn,5)}</span></div>
+    <div class="detail-row"><span class="detail-label">ITTC-1957 C_F:</span><span class="detail-value">${r.CF.toFixed(7)}</span></div>
+    <h4 class="detail-heading">Resistance synthesis</h4>
+    <div class="detail-row"><span class="detail-label">1+k1:</span><span class="detail-value">${r.onePlusK1.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">C_A:</span><span class="detail-value">${r.CA.toExponential(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">C_V = (1+k1)C_F + C_A:</span><span class="detail-value">${r.CV.toFixed(7)}</span></div>
+    <div class="detail-row"><span class="detail-label">Wave branch:</span><span class="detail-value">${r.wave.region}</span></div>
+    <div class="detail-row"><span class="detail-label">Wave resistance:</span><span class="detail-value">${(r.wave.RW/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">Bulb resistance:</span><span class="detail-value">${(r.wave.RB/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">Transom resistance:</span><span class="detail-value">${(r.wave.RTR/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">Total resistance:</span><span class="detail-value">${(r.Rtotal/1000).toFixed(3)} kN</span></div>`;
+
+  $('detailPropulsion').innerHTML=`
+    <div class="detail-row"><span class="detail-label">Configuration:</span><span class="detail-value">${r.prop.mode}; ${r.p.shaftCount} propeller(s)</span></div>
+    <div class="detail-row"><span class="detail-label">C_V:</span><span class="detail-value">${r.CV.toFixed(7)}</span></div>
+    <div class="detail-row"><span class="detail-label">Wake fraction w:</span><span class="detail-value">${r.w.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">Thrust deduction t:</span><span class="detail-value">${r.t.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">Hull efficiency η_H:</span><span class="detail-value">${r.etaH.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">Relative rotative efficiency η_R:</span><span class="detail-value">${r.etaR.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">Velocity of advance:</span><span class="detail-value">${r.VA.toFixed(4)} m/s (${(r.VA/KNOT_MS).toFixed(2)} kn)</span></div>
+    <div class="detail-row"><span class="detail-label">Total thrust required:</span><span class="detail-value">${(r.totalT/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">Thrust per propeller:</span><span class="detail-value">${(r.Tper/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">η_O:</span><span class="detail-value">${r.etaO.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">η_D:</span><span class="detail-value">${r.etaD.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">P_E:</span><span class="detail-value">${r.PE.toFixed(2)} kW</span></div>
+    <div class="detail-row"><span class="detail-label">P_D:</span><span class="detail-value">${r.PDelivered.toFixed(2)} kW</span></div>
+    <div class="detail-row"><span class="detail-label">Total shaft power:</span><span class="detail-value">${r.PS.toFixed(2)} kW</span></div>
+    <div class="detail-row"><span class="detail-label">Engine power with ${r.p.margin}% margin:</span><span class="detail-value">${r.Pengine.toFixed(2)} kW (${r.PengineHP.toFixed(0)} HP)</span></div>`;
+
+  const kt=polyValue(kT_coeffs,r.J,r.p.PD,r.p.EAR,r.p.Z),kq=polyValue(kQ_coeffs,r.J,r.p.PD,r.p.EAR,r.p.Z);
+  const table=(rows,sum)=>`<div class="table-wrap"><table class="poly-table"><thead><tr><th>Coeff</th><th>s</th><th>t</th><th>u</th><th>v</th><th>Product</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x.c.toExponential(4)}</td><td>${x.s}</td><td>${x.t}</td><td>${x.u}</td><td>${x.v}</td><td>${x.term.toExponential(4)}</td></tr>`).join('')}<tr class="sum-row"><td colspan="5">Summation</td><td>${sum.toExponential(6)}</td></tr></tbody></table></div>`;
+  const auto=autoChord(r.p.D,r.p.EAR,r.p.Z);
+  $('detailPropeller').innerHTML=`
+    <h4 class="detail-heading">Operating point</h4>
+    <div class="detail-row"><span class="detail-label">J:</span><span class="detail-value">${r.J.toFixed(6)}</span></div>
+    <div class="detail-row"><span class="detail-label">n:</span><span class="detail-value">${r.n.toFixed(4)} rev/s</span></div>
+    <div class="detail-row"><span class="detail-label">RPM:</span><span class="detail-value">${r.RPM.toFixed(1)}</span></div>
+    <div class="detail-row"><span class="detail-label">Base K_T:</span><span class="detail-value">${r.J?kt.sum.toFixed(7):'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Base K_Q:</span><span class="detail-value">${kq.sum.toFixed(7)}</span></div>
+    <div class="detail-row"><span class="detail-label">ΔK_T Reynolds correction:</span><span class="detail-value">${r.corr.dKT.toExponential(7)} (${r.corr.active?'active':'inactive'})</span></div>
+    <div class="detail-row"><span class="detail-label">ΔK_Q Reynolds correction:</span><span class="detail-value">${r.corr.dKQ.toExponential(7)} (${r.corr.active?'active':'inactive'})</span></div>
+    <div class="detail-row"><span class="detail-label">Re_0.75R:</span><span class="detail-value">${sci(r.Re075,6)}</span></div>
+    <div class="detail-row"><span class="detail-label">Simple c_0.75R estimate:</span><span class="detail-value">${auto.toFixed(4)} m</span></div>
+    <div class="detail-row"><span class="detail-label">Generated thrust / total required thrust:</span><span class="detail-value">${(r.TgenTotal/1000).toFixed(3)} / ${(r.totalT/1000).toFixed(3)} kN</span></div>
+    <h4 class="detail-heading">K_T polynomial</h4>${table(kt.terms,r.KT)}
+    <h4 class="detail-heading">K_Q polynomial</h4>${table(kq.terms,r.KQ)}
+    <div class="status info"><strong>Reynolds note:</strong>&nbsp; the published correction polynomials are referenced to Re≈2×10⁶; the regression fit is not mathematically constrained to return an exact zero increment at the reference point. Use the correction only inside its stated range and with a defensible c_0.75R.</div>`;
+
+  $('detailRudder').innerHTML=`
+    <div class="detail-row"><span class="detail-label">Profile:</span><span class="detail-value">${r.rud.profile}</span></div>
+    <div class="detail-row"><span class="detail-label">λ = b²/A_t:</span><span class="detail-value">${r.rud.lambdaRaw.toFixed(5)} → limited to ${r.rud.lambdaR.toFixed(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">K_1 = (λ+2)/3:</span><span class="detail-value">${r.rud.K1.toFixed(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">K_2 ahead / astern:</span><span class="detail-value">${r.rud.K2Ahead.toFixed(2)} / ${r.rud.K2Astern.toFixed(2)}</span></div>
+    <div class="detail-row"><span class="detail-label">K_3:</span><span class="detail-value">${r.rud.K3.toFixed(2)}</span></div>
+    <div class="detail-row"><span class="detail-label">Ahead rule speed:</span><span class="detail-value">${r.rud.VHa.toFixed(3)} kn</span></div>
+    <div class="detail-row"><span class="detail-label">Astern rule speed:</span><span class="detail-value">${r.rud.VHast.toFixed(3)} kn</span></div>
+    <div class="detail-row"><span class="detail-label">Ahead rudder force:</span><span class="detail-value">${(r.rud.CRa/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">Astern rudder force:</span><span class="detail-value">${(r.rud.CRd/1000).toFixed(3)} kN</span></div>
+    <div class="detail-row"><span class="detail-label">A_f/A:</span><span class="detail-value">${r.rud.balanceRatio.toFixed(5)}</span></div>
+    <div class="detail-row"><span class="detail-label">Ahead raw lever:</span><span class="detail-value">${r.rud.rawAheadLever.toFixed(4)} m</span></div>
+    <div class="detail-row"><span class="detail-label">Ahead lever used:</span><span class="detail-value">${r.rud.aheadLever.toFixed(4)} m (minimum 0.1c applied)</span></div>
+    <div class="detail-row"><span class="detail-label">Astern lever:</span><span class="detail-value">${r.rud.asternLever.toFixed(4)} m</span></div>
+    <div class="detail-row"><span class="detail-label">Ahead torque:</span><span class="detail-value">${(r.rud.Qa/1000).toFixed(3)} kN·m</span></div>
+    <div class="detail-row"><span class="detail-label">Astern torque:</span><span class="detail-value">${(r.rud.Qd/1000).toFixed(3)} kN·m</span></div>
+    <div class="detail-row"><span class="detail-label">Design torque:</span><span class="detail-value">${(r.rud.Qdesign/1000).toFixed(3)} kN·m</span></div>
+    <div class="detail-row"><span class="detail-label">Torsion-only stock diameter d_t:</span><span class="detail-value">${r.rud.dt.toFixed(2)} mm</span></div>
+    <div class="detail-row"><span class="detail-label">Combined-load stock diameter, ahead case:</span><span class="detail-value">${r.rud.dcAhead.toFixed(2)} mm</span></div>
+    <div class="detail-row"><span class="detail-label">Combined-load stock diameter, astern case:</span><span class="detail-value">${r.rud.dcAstern.toFixed(2)} mm</span></div>
+    <div class="detail-row"><span class="detail-label">Design stock diameter screening:</span><span class="detail-value">${r.rud.dStock.toFixed(2)} mm</span></div>
+    <div class="status warn"><strong>Rudder scope:</strong>&nbsp; the force/torque equations are for an ordinary rudder. Semi-spade cut-outs require area-partition pressure distribution and separate levers. Bending moment is a project/class structural input; this tool does not invent it. Current BV NR467 also requires the system to be designed so the rudder is not damaged at maximum astern speed.</div>`;
+
+  addStatus($('propStatus'),r.p.useRe?'info':'info',`<strong>B-Series:</strong>&nbsp; ${r.corr.active?'Reynolds correction active.':'Base B-series polynomial only.'} ${r.corr.reason||''} Nominal domain warning is shown in Validation.`);
+  $('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function resetDefaults(){
+  const d={LWL:82.163,LBP:78.997,B:12.74,T:4,TF:4,TA:4,nabla:3049.458,V:11,CB:.7283,CM:.986,CWP:.891,AM:50.24656,AT:6,ABT:0,hB:0,lcbPct:1.01,Cstern:0,D:1.75,Z:4,PD:1.3,AeAo:.5035,shaftType:'twin',shaftCount:2,c075R:.447,useRe:false,rud_h:7,rud_b:4,rud_AR:28.3689,rud_At:28.3689,rud_AF:8.3,rud_profile:'naca',rud_k3:1,rud_k:1,rud_MB:0,rud_VA:11,rud_VD:5,rho:1025,nu:.00000119,etaS:.99,margin:15,SAPP:5.478,k2:2.8};
+  Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.type==='checkbox')el.checked=!!v;else el.value=v;});
+  $('shaftCount').value=2;$('resultsSection').style.display='none';
+}
+
+function exportReport(){
+  if($('resultsSection').style.display==='none'){alert('Please execute calculations prior to exporting the technical report.');return;}
+  let r;try{r=calculateCore();}catch(e){alert(e.message);return;}
+  const txt=`MARINE POWER & HYDRODYNAMICS CALCULATOR v3\n================================================\nGenerated: ${new Date().toLocaleString()}\n\nMETHODS\n-------\nHoltrop-Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial propeller matching and IACS UR S10 / BV-oriented rudder-stock screening.\n\nVESSEL\n------\nLWL: ${r.p.L} m\nLBP: ${r.p.LBP} m\nB: ${r.p.B} m\nT / TF / TA: ${r.p.T} / ${r.p.TF} / ${r.p.TA} m\nDisplacement volume: ${r.p.nabla} m3\nService speed: ${r.p.Vkn} kn\nCB entered / computed: ${r.p.CB} / ${r.CBcalc}\nCM entered / computed: ${r.p.CM} / ${r.CMcalc}\nCP: ${r.CP}\nLCB (%L): ${r.lcbFrac}\n\nRESISTANCE\n----------\nFn: ${r.Fn}\nS: ${r.S} m2\nRn: ${r.Rn}\nCF: ${r.CF}\nWave branch: ${r.wave.region}\nRT: ${(r.Rtotal/1000).toFixed(3)} kN\nPE: ${r.PE.toFixed(2)} kW\n\nPROPULSION\n----------\nConfiguration: ${r.prop.mode}\nPropellers: ${r.p.shaftCount}\nw: ${r.w}\nt: ${r.t}\netaH: ${r.etaH}\netaR: ${r.etaR}\netaO: ${r.etaO}\netaD: ${r.etaD}\nTotal thrust: ${(r.totalT/1000).toFixed(3)} kN\nThrust per propeller: ${(r.Tper/1000).toFixed(3)} kN\nJ: ${r.J}\nRPM: ${r.RPM.toFixed(2)}\nKT: ${r.KT}\nKQ: ${r.KQ}\nRe0.75R: ${Number.isFinite(r.Re075)?r.Re075:'not available'}\nThrust balance error: ${r.thrustError.toFixed(3)} %\nTotal shaft power: ${r.PS.toFixed(2)} kW\nEngine power with margin: ${r.Pengine.toFixed(2)} kW (${r.PengineHP.toFixed(0)} HP)\n\nRUDDER / STOCK SCREENING\n------------------------\nProfile: ${r.rud.profile}\nK2 ahead / astern: ${r.rud.K2Ahead} / ${r.rud.K2Astern}\nK3: ${r.rud.K3}\nAhead rule speed: ${r.rud.VHa.toFixed(3)} kn\nAstern rule speed: ${r.rud.VHast.toFixed(3)} kn\nAhead force: ${(r.rud.CRa/1000).toFixed(3)} kN\nAstern force: ${(r.rud.CRd/1000).toFixed(3)} kN\nAhead torque: ${(r.rud.Qa/1000).toFixed(3)} kN-m\nAstern torque: ${(r.rud.Qd/1000).toFixed(3)} kN-m\nDesign torque: ${(r.rud.Qdesign/1000).toFixed(3)} kN-m\nBending moment input: ${r.p.rud_MB} N-m\nStock diameter screening: ${r.rud.dStock.toFixed(2)} mm\n\nLIMITATIONS\n-----------\nHoltrop-Mennen is a statistical preliminary prediction method. B-Series is a model-series correlation with a defined Reynolds correction range. Rudder cut-out pressure distribution, support reactions, fatigue, cavitation, shafting strength and class-specific requirements are outside this screening tool.\n`;
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='marine_hydrodynamic_report_v3.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+
+$('calcBtn').addEventListener('click',()=>{try{render(calculateCore());}catch(e){$('resultsSection').style.display='block';$('detailValidation').innerHTML=`<div class="status error"><strong>Calculation error:</strong>&nbsp; ${e.message}</div>`;$('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});}});
+$('resetBtn').addEventListener('click',resetDefaults);
+$('exportBtn').addEventListener('click',exportReport);
+$('shaftType').addEventListener('change',()=>{$('shaftCount').value=$('shaftType').value==='twin'?2:1;});
+$('AeAo').addEventListener('input',()=>{if($('c075R').value===''||parseFloat($('c075R').value)===0)return;});
+resetDefaults();
+try{render(calculateCore());}catch(e){console.error(e);}
+})();
+</script>
+</body>
+</html>
