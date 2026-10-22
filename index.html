@@ -3,216 +3,608 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Marine Power & Hydrodynamics Calculator v3</title>
+<meta name="color-scheme" content="light dark">
+<title>Marine Power &amp; Hydrodynamics Calculator v3</title>
 <meta name="description" content="Preliminary ship resistance, propulsion, propeller matching and rudder-stock screening calculator using Holtrop-Mennen, ITTC 1957, Wageningen B-Series and IACS/BV rule-based rudder equations.">
 <style>
-:root{--bg:#fafafa;--surface:#fff;--border:#e7e5e4;--text:#1c1917;--muted:#57534e;--accent:#b45309;--accent-h:#92400e;--ok:#10b981;--err:#ef4444;--info:#2563eb;--warn:#d97706;--r:6px;--rl:10px;--sh:0 1px 3px rgba(0,0,0,.05)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
-.container{max-width:1140px;margin:0 auto;padding:36px 20px}
-header{text-align:center;margin-bottom:28px;border-bottom:2px solid var(--border);padding-bottom:20px}
-h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}.subtitle{font-size:1rem;color:var(--muted);max-width:930px;margin:0 auto}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:26px;margin-bottom:24px;box-shadow:var(--sh)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:20px}.fg{display:flex;flex-direction:column;gap:6px}
-label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:1rem;background:#fff;transition:border-color .2s,box-shadow .2s}
-input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(180,83,9,.1)}
-input:disabled{background:#f5f5f4;color:#78716c}
-.checkbox{display:flex;align-items:center;gap:8px;min-height:42px}.checkbox input{width:16px;height:16px}.checkbox label{margin:0;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text)}
-.btn{background:var(--text);color:#fff;padding:12px 26px;border-radius:var(--r);font-weight:600;border:none;cursor:pointer;font-size:.95rem;margin-top:10px;transition:background .2s}.btn:hover{background:#333}.btn.accent{background:var(--accent)}.btn.accent:hover{background:var(--accent-h)}
-.hint{font-size:.74rem;color:var(--muted);margin-top:1px}.formula{font-size:.68rem;color:var(--info);font-style:italic;font-family:"Courier New",Courier,monospace;margin-top:1px}
-.section-title{font-size:1.1rem;font-weight:700;margin-bottom:18px;color:var(--text);padding-bottom:8px;border-bottom:2px solid var(--accent);text-transform:uppercase;letter-spacing:.04em}
-.notice{border:1px solid #fcd34d;background:#fffbeb;color:#78350f;border-radius:var(--r);padding:12px 14px;margin-bottom:20px;font-size:.88rem}.notice strong{font-weight:700}
-.status{display:flex;gap:8px;align-items:flex-start;border-radius:var(--r);padding:11px 13px;margin-top:16px;font-size:.84rem}.status.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a}.status.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.status.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.status.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
-.results-section{display:none}.summary-box{background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:2px solid var(--accent);border-radius:var(--rl);padding:24px;margin-top:18px}.summary-box h3{font-size:1.08rem;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:.05em}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px}.summary-item{text-align:center}.summary-label{font-size:.75rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}.summary-value{font-size:1.65rem;font-weight:700;color:var(--accent);font-family:"Courier New",Courier,monospace}.summary-unit{font-size:.82rem;color:var(--text);margin-left:4px}
-.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:22px}.result-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:18px}.result-card h3{font-size:.83rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}.result-item{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border)}.result-item:last-child{border-bottom:none}.result-label{font-size:.86rem;color:var(--text);font-weight:500}.result-value{font-size:.98rem;font-weight:700;color:var(--accent);font-family:"Courier New",Courier,monospace;text-align:right}.result-unit{font-size:.72rem;color:var(--muted);margin-left:3px;font-family:sans-serif}.highlight{background:#fef3c7;padding:5px 8px;border-radius:4px}
-.details{margin-top:28px}.details details{margin-bottom:10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}.details summary{padding:13px 16px;background:#f8f8f8;cursor:pointer;font-weight:600;font-size:.92rem;list-style:none;display:flex;align-items:center;justify-content:space-between}.details summary::-webkit-details-marker{display:none}.details summary::after{content:"+";font-size:1.15rem;color:var(--muted)}.details details[open] summary::after{content:"−"}.details summary:hover{background:#f0f0f0}.detail-content{padding:18px;background:#fff;border-top:1px solid var(--border)}.detail-row{display:flex;justify-content:space-between;gap:20px;padding:6px 0;border-bottom:1px dotted var(--border);font-size:.84rem}.detail-row:last-child{border-bottom:none}.detail-label{color:var(--text);font-weight:500}.detail-value{font-weight:600;font-family:"Courier New",Courier,monospace;color:var(--accent-h);text-align:right}.detail-heading{margin:15px 0 9px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:5px;font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.table-wrap{overflow:auto}.poly-table{width:100%;border-collapse:collapse;font-size:.73rem;margin:12px 0;font-family:"Courier New",Courier,monospace}.poly-table th,.poly-table td{border:1px solid var(--border);padding:5px 7px;text-align:right}.poly-table th{background:#f4f4f4;text-align:center;font-weight:600;color:var(--text);text-transform:uppercase;font-size:.68rem;letter-spacing:.05em}.poly-table tr:nth-child(even){background:#fafafa}.poly-table .sum-row{background:#fef3c7!important;font-weight:bold;color:var(--accent-h)}
-.check-table{width:100%;border-collapse:collapse;font-size:.82rem}.check-table th,.check-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.check-table th{font-size:.72rem;text-transform:uppercase;color:var(--muted)}.pass{color:#047857;font-weight:700}.warn-text{color:#b45309;font-weight:700}.fail{color:#b91c1c;font-weight:700}
-.footer{margin-top:50px;text-align:center;color:var(--muted);font-size:.78rem;padding-top:22px;border-top:1px solid var(--border);line-height:1.8}.muted{color:var(--muted)}
-@media(max-width:650px){h1{font-size:1.75rem}.grid,.result-grid{grid-template-columns:1fr}.container{padding:24px 14px}.summary-grid{grid-template-columns:repeat(2,1fr)}.detail-row{flex-direction:column;gap:2px}.detail-value{text-align:left}}
+/* ============================================================
+   Design system — Aznur Index
+   ============================================================ */
+:root{
+  color-scheme: light dark;
+  --bg:#fdfcfc; --fg:#201d1d; --dim:#646262; --faint:#9a9898;
+  --line:#dcd9d9; --accent:#b45309; --accent-fg:#fdfcfc;
+  --active:#f4f0ef; --surface:#faf8f7;
+  --font:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius:4px; --maxw:68rem; --pad:1rem;
+}
+@media (min-width:640px){ :root{ --pad:1.5rem; } }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#161313; --fg:#f1eeee; --dim:#9a9898; --faint:#646262;
+  --line:#302c2c; --accent:#f59e0b; --accent-fg:#161313;
+  --active:#211d1d; --surface:#1c1818;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#161313; --fg:#f1eeee; --dim:#9a9898; --faint:#646262;
+    --line:#302c2c; --accent:#f59e0b; --accent-fg:#161313;
+    --active:#211d1d; --surface:#1c1818;
+  }
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font:14.5px/1.65 var(--font);
+  background:var(--bg); color:var(--fg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+[hidden],.hidden{ display:none !important; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:2px; }
+button{ font:inherit; color:inherit; cursor:pointer; }
+a{ color:inherit; text-decoration:none; }
+sub,sup{ font-size:.78em; }
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ transition:none !important; animation:none !important; }
+}
+
+/* ---------- Layout ---------- */
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
+
+/* ---------- Topbar ---------- */
+.topbar{ border-bottom:1px solid var(--line); }
+.topbar-inner{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 0; min-height:56px; }
+.brand{ font-size:15px; font-weight:600; letter-spacing:-.01em; }
+.brand .slash{ color:var(--faint); margin:0 .1em; }
+.topbar-tools{ display:flex; align-items:center; gap:.5rem; }
+.topbar-tools .eyebrow{ margin:0; }
+
+/* ---------- Typography helpers ---------- */
+.eyebrow{
+  font-size:10px; line-height:1.4; font-weight:500;
+  text-transform:uppercase; letter-spacing:.12em;
+  color:var(--accent); margin:0 0 .5rem;
+}
+.lede{ max-width:72ch; color:var(--dim); font-size:14px; margin:0; }
+.note{ color:var(--dim); font-size:12px; line-height:1.55; margin:.35rem 0 0; }
+.hint{ color:var(--faint); font-size:11px; line-height:1.4; margin-top:.15rem; }
+.formula{ color:var(--faint); font-size:11px; font-style:italic; line-height:1.4; margin-top:.15rem; }
+
+/* ---------- Hero ---------- */
+.hero{ padding:2.25rem 0 1.25rem; text-align:center; }
+.hero h1{
+  font-size:clamp(1.5rem,4vw,2.25rem); font-weight:600;
+  letter-spacing:-.02em; line-height:1.15; margin:0 0 .65rem;
+}
+.hero .lede{ margin:0 auto; }
+
+/* ---------- Cards ---------- */
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:1.1rem 1.15rem;
+  margin-bottom:1rem;
+}
+.card h2{
+  font-size:1.05rem; font-weight:600; letter-spacing:-.01em;
+  margin:0 0 .75rem; padding-bottom:.6rem; border-bottom:1px solid var(--line);
+  line-height:1.3;
+}
+
+/* ---------- Form fields ---------- */
+.field-grid{
+  display:grid; gap:.9rem;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
+}
+.fg{ display:flex; flex-direction:column; gap:.35rem; min-width:0; }
+label{
+  font-size:10px; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--dim); font-weight:600;
+}
+label sub, label sup{ text-transform:none; letter-spacing:0; font-size:.82em; }
+input[type=number],select{
+  width:100%; min-height:36px;
+  padding:.45rem .65rem;
+  font:inherit; font-size:13.5px;
+  color:var(--fg); background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--radius);
+}
+input[type=number]:hover,select:hover{ border-color:var(--accent); }
+input[type=number]:focus-visible,select:focus-visible{ outline-offset:1px; }
+input[type=number]:disabled{ color:var(--faint); background:var(--active); cursor:not-allowed; }
+.checkbox{
+  display:flex; align-items:center; gap:.5rem;
+  min-height:42px;
+  font-size:12.5px;
+  color:var(--fg);
+  text-transform:none; letter-spacing:0; font-weight:400;
+}
+.checkbox input{ width:16px; height:16px; margin:0; accent-color:var(--accent); }
+.checkbox label{
+  margin:0; text-transform:none; letter-spacing:0;
+  font-size:12.5px; font-weight:400; color:var(--fg);
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.4rem; min-height:40px; padding:.55rem 1.1rem;
+  font:inherit; font-size:13.5px; font-weight:600;
+  color:var(--fg); background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--radius);
+  transition:border-color .15s, background .15s, color .15s;
+}
+.btn:hover{ border-color:var(--accent); }
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
+.btn.accent{ background:var(--accent); color:var(--accent-fg); border-color:var(--accent); }
+.btn.accent:hover{ filter:brightness(1.05); }
+.btn.secondary{ background:var(--surface); }
+.btn.ghost{ background:transparent; border-color:transparent; }
+.btn.ghost:hover{ border-color:var(--line); }
+
+.action-bar{
+  display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;
+  margin:1.5rem 0 1rem;
+}
+.action-bar .btn.accent{ min-height:44px; padding:.7rem 1.75rem; font-size:14px; }
+
+/* ---------- Notice ---------- */
+.notice{
+  padding:.85rem 1rem;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  border-radius:4px;
+  color:var(--dim); font-size:12.5px; line-height:1.6;
+  margin-bottom:1rem;
+}
+.notice strong{ color:var(--fg); font-weight:600; }
+
+/* ---------- Status blocks (markers via ::before) ---------- */
+.status{
+  display:block;
+  padding:.65rem .85rem; margin-top:1rem;
+  border:1px solid var(--line); border-radius:4px;
+  font-size:12.5px; line-height:1.6;
+  color:var(--dim); background:var(--surface);
+}
+.status strong{ color:var(--fg); font-weight:600; }
+.status::before{
+  content:'[*]'; color:var(--accent); font-weight:600; margin-right:.5rem;
+}
+.status.warn{ border-color:var(--accent); }
+.status.warn::before{ content:'[!]'; }
+.status.error{ border-style:dashed; border-color:var(--accent); }
+.status.error::before{ content:'[x]'; }
+.status.error strong{ color:var(--accent); }
+.status.ok{ border-color:var(--fg); color:var(--fg); }
+.status.ok::before{ content:'[*]'; }
+
+/* ---------- Results section ---------- */
+.results-section{ display:none; }
+
+.summary-box{
+  background:var(--active);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:1.1rem 1.15rem;
+  margin-top:.85rem;
+}
+.summary-box h3{
+  font-size:12px; font-weight:600; margin:0 0 .85rem;
+  color:var(--dim); text-transform:uppercase; letter-spacing:.1em;
+}
+.summary-grid{
+  display:grid; gap:.85rem;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
+}
+.summary-item{ text-align:center; }
+.summary-label{
+  font-size:10px; color:var(--dim); text-transform:uppercase;
+  letter-spacing:.1em; margin-bottom:.3rem;
+}
+.summary-value{
+  font-size:clamp(1.25rem,3vw,1.65rem); font-weight:600;
+  color:var(--fg); letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums; line-height:1.15;
+}
+.summary-unit{ font-size:11.5px; color:var(--dim); margin-left:.2rem; }
+
+.result-grid{
+  display:grid; gap:.85rem; margin-top:1.15rem;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));
+}
+.result-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:.85rem 1rem;
+}
+.result-card h3{
+  font-size:10.5px; font-weight:600; color:var(--dim);
+  text-transform:uppercase; letter-spacing:.1em;
+  margin:0 0 .55rem; padding-bottom:.5rem;
+  border-bottom:1px solid var(--line);
+}
+.result-item{
+  display:flex; justify-content:space-between; gap:.75rem;
+  align-items:baseline;
+  padding:.35rem 0;
+  border-bottom:1px dashed var(--line);
+}
+.result-item:last-child{ border-bottom:0; }
+.result-label{ font-size:12px; color:var(--fg); }
+.result-value{
+  font-size:12.5px; font-weight:600; color:var(--fg);
+  font-variant-numeric:tabular-nums; text-align:right;
+}
+.result-unit{ font-size:10.5px; color:var(--dim); margin-left:.2rem; font-weight:400; }
+.result-item.highlight{
+  background:var(--active);
+  margin:0 -.5rem; padding:.35rem .5rem;
+  border-radius:3px;
+  border-bottom:0;
+}
+.result-item.highlight .result-value{ color:var(--accent); }
+.result-item.highlight .result-label{ color:var(--fg); font-weight:600; }
+
+/* ---------- Details/breakdown ---------- */
+.details{ margin-top:1.5rem; }
+.details details{
+  margin-bottom:.5rem;
+  border:1px solid var(--line);
+  border-radius:4px;
+  overflow:hidden;
+  background:var(--surface);
+}
+.details summary{
+  padding:.65rem .85rem;
+  background:var(--bg);
+  cursor:pointer;
+  font-weight:600; font-size:12.5px;
+  list-style:none;
+  display:flex; align-items:center; justify-content:space-between;
+  transition:background .15s;
+}
+.details summary::-webkit-details-marker{ display:none; }
+.details summary::after{
+  content:'+'; font-size:1rem; color:var(--accent); font-weight:500;
+}
+.details details[open] summary::after{ content:'−'; }
+.details summary:hover{ background:var(--active); }
+.detail-content{ padding:1rem 1.15rem; background:var(--surface); }
+.detail-row{
+  display:flex; justify-content:space-between; gap:1rem;
+  padding:.35rem 0; border-bottom:1px dashed var(--line);
+  font-size:12px; align-items:baseline;
+}
+.detail-row:last-child{ border-bottom:0; }
+.detail-label{ color:var(--dim); }
+.detail-value{
+  font-weight:600; color:var(--fg); text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.detail-heading{
+  margin:1rem 0 .5rem; padding-top:.75rem;
+  border-top:1px solid var(--line);
+  color:var(--fg); font-size:10.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.1em;
+}
+
+/* ---------- Check table (validation) ---------- */
+.check-table{
+  width:100%; border-collapse:collapse;
+  font-size:12px;
+}
+.check-table th,.check-table td{
+  padding:.5rem .55rem; text-align:left; vertical-align:top;
+  border-bottom:1px dashed var(--line);
+}
+.check-table th{
+  font-size:10px; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--dim); font-weight:600;
+  border-bottom-style:solid;
+}
+.check-table tbody tr:last-child td{ border-bottom:0; }
+.pass{ color:var(--fg); font-weight:600; white-space:nowrap; }
+.pass::before{ content:'[*] '; color:var(--accent); }
+.fail{ color:var(--accent); font-weight:600; white-space:nowrap; }
+.fail::before{ content:'[!] '; }
+
+/* ---------- Polynomial tables ---------- */
+.table-wrap{ overflow:auto; margin:.55rem 0; }
+.poly-table{
+  width:100%; border-collapse:collapse;
+  font-size:11.5px;
+  font-variant-numeric:tabular-nums;
+}
+.poly-table th,.poly-table td{
+  padding:.4rem .5rem; text-align:right;
+  border-bottom:1px dashed var(--line);
+}
+.poly-table th{
+  background:var(--bg); color:var(--dim); text-align:center;
+  text-transform:uppercase; letter-spacing:.08em;
+  font-size:10px; font-weight:600;
+  border-bottom-style:solid;
+}
+.poly-table tbody tr:last-child td{ border-bottom:0; }
+.poly-table .sum-row{
+  background:var(--active);
+  font-weight:700; color:var(--accent);
+}
+.poly-table .sum-row td{ border-bottom:0; }
+
+/* ---------- Toasts ---------- */
+#toasts{
+  position:fixed; top:1rem; right:1rem;
+  display:flex; flex-direction:column; gap:.5rem;
+  width:min(360px, calc(100vw - 2rem));
+  z-index:1000;
+}
+.toast{
+  display:flex; gap:.55rem; align-items:flex-start;
+  padding:.55rem .7rem;
+  background:var(--surface); color:var(--fg);
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  border-radius:4px;
+  font-size:12.5px; line-height:1.5;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.toast-mark{ color:var(--accent); font-weight:600; flex-shrink:0; }
+
+/* ---------- Footer ---------- */
+footer{
+  margin-top:2.5rem;
+  padding:1.25rem 0 2rem;
+  border-top:1px solid var(--line);
+  color:var(--dim); font-size:12px; line-height:1.7;
+}
+.footer-row{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:1rem; flex-wrap:wrap; margin-bottom:.65rem;
+}
+.footer-hints{ display:flex; gap:.85rem; flex-wrap:wrap; align-items:center; }
+.footer-hints span{ display:inline-flex; align-items:center; gap:.3rem; }
+kbd{
+  font:inherit; font-size:10.5px;
+  padding:.05rem .35rem;
+  border:1px solid var(--line); border-radius:3px;
+  background:var(--active); color:var(--dim);
+  letter-spacing:.02em;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width:620px){
+  .hero{ padding:1.5rem 0 1rem; }
+  .topbar-tools .eyebrow{ display:none; }
+  .summary-grid{ grid-template-columns:repeat(2,1fr); }
+  .detail-row{ flex-direction:column; gap:.15rem; }
+  .detail-value{ text-align:left; }
+}
 </style>
 </head>
 <body>
-<div class="container">
-<header>
-  <h1>Marine Power & Hydrodynamics Calculator</h1>
-  <p class="subtitle">Preliminary ship resistance, propulsion, propeller matching and rudder-stock screening using Holtrop-Mennen, ITTC 1957, Wageningen B-Series polynomials and IACS/BV rule-based rudder equations. All calculations run locally in the browser. Curated by Sadman Aznur.</p>
+
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#">aznur<span class="slash">/</span>marine</a>
+    <div class="topbar-tools">
+      <label class="eyebrow" for="theme1">Theme</label>
+      <select id="theme1" aria-label="Theme" style="min-width:104px;min-height:32px;font-size:12px;">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </div>
+  </div>
 </header>
 
-<div class="notice"><strong>Engineering-use notice:</strong> this is a preliminary design/checking tool, not a class-approved calculation. Holtrop-Mennen is statistical and its validity depends on hull-form similarity and operating range. B-Series is a model-series correlation. Rudder stock, steering gear, propeller cavitation, shafting and final engine selection require the applicable class rules and project-specific verification.</div>
+<main class="wrap">
 
-<div class="card">
-  <h2 class="section-title">Vessel Principal Particulars</h2>
-  <div class="grid">
-    <div class="fg"><label for="LWL">Length on Waterline (L<sub>WL</sub>)</label><input type="number" id="LWL" value="82.163" step="0.001" min="0.001"><span class="hint">m</span></div>
-    <div class="fg"><label for="LBP">Length Between Perpendiculars (L<sub>BP</sub>)</label><input type="number" id="LBP" value="78.997" step="0.001" min="0.001"><span class="hint">m. Used for LBP-based hydrostatic checks.</span></div>
-    <div class="fg"><label for="B">Breadth Moulded (B)</label><input type="number" id="B" value="12.74" step="0.01" min="0.01"><span class="hint">m</span></div>
-    <div class="fg"><label for="T">Mean Draught (T)</label><input type="number" id="T" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
-    <div class="fg"><label for="TF">Forward Draught (T<sub>F</sub>)</label><input type="number" id="TF" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
-    <div class="fg"><label for="TA">Aft Draught (T<sub>A</sub>)</label><input type="number" id="TA" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
-    <div class="fg"><label for="nabla">Displacement Volume (∇)</label><input type="number" id="nabla" value="3049.458" step="0.001" min="0.001"><span class="hint">m³</span></div>
-    <div class="fg"><label for="V">Service Speed (V)</label><input type="number" id="V" value="11" step="0.1" min="0.1"><span class="hint">knots</span></div>
+  <section class="hero">
+    <h1>Marine Power &amp; Hydrodynamics Calculator</h1>
+    <p class="lede">Preliminary ship resistance, propulsion, propeller matching and rudder-stock screening using Holtrop-Mennen, ITTC 1957, Wageningen B-Series polynomials and IACS/BV rule-based rudder equations. All calculations run locally in the browser. Curated by Sadman Aznur.</p>
+  </section>
+
+  <div class="notice">
+    <strong>Engineering-use notice.</strong> This is a preliminary design/checking tool, not a class-approved calculation. Holtrop-Mennen is statistical and its validity depends on hull-form similarity and operating range. B-Series is a model-series correlation. Rudder stock, steering gear, propeller cavitation, shafting and final engine selection require the applicable class rules and project-specific verification.
   </div>
-</div>
 
-<div class="card">
-  <h2 class="section-title">Hull Form Coefficients</h2>
-  <div class="grid">
-    <div class="fg"><label for="CB">Block Coefficient (C<sub>B</sub>)</label><input type="number" id="CB" value="0.7283" step="0.0001" min="0.01" max="1"><span class="formula">C<sub>B</sub> = ∇/(L<sub>WL</sub>BT)</span></div>
-    <div class="fg"><label for="CM">Midship Section Coefficient (C<sub>M</sub>)</label><input type="number" id="CM" value="0.986" step="0.0001" min="0.01" max="1"><span class="hint">Validated against A<sub>M</sub>/(BT).</span></div>
-    <div class="fg"><label for="CWP">Waterplane Area Coefficient (C<sub>WP</sub>)</label><input type="number" id="CWP" value="0.891" step="0.0001" min="0.01" max="1"></div>
-    <div class="fg"><label for="AM">Midship Section Area (A<sub>M</sub>)</label><input type="number" id="AM" value="50.24656" step="0.00001" min="0.001"><span class="hint">m². Default is consistent with C<sub>M</sub>=0.986, B=12.74, T=4.</span></div>
-    <div class="fg"><label for="AT">Immersed Transom Area (A<sub>T</sub>)</label><input type="number" id="AT" value="6" step="0.1" min="0"><span class="hint">m² at zero speed reference condition.</span></div>
-    <div class="fg"><label for="ABT">Transverse Bulb Area (A<sub>BT</sub>)</label><input type="number" id="ABT" value="0" step="0.1" min="0"><span class="hint">m². Use 0 for no bulb.</span></div>
-    <div class="fg"><label for="hB">Bulb Centre Height (h<sub>B</sub>)</label><input type="number" id="hB" value="0" step="0.1" min="0"><span class="hint">m above keel</span></div>
-    <div class="fg"><label for="lcbPct">LCB Position Forward of 0.5L</label><input type="number" id="lcbPct" value="1.01" step="0.01"><span class="hint">% of L<sub>WL</sub>. The former 2.02% of L/2 input is equivalent to 1.01% of L.</span></div>
-    <div class="fg"><label for="Cstern">Stern Shape Parameter (C<sub>stern</sub>)</label><select id="Cstern"><option value="0">Normal section (0)</option><option value="-10">U-shaped / Hogner stern (-10)</option><option value="10">V-shaped sections (+10)</option><option value="-25">Pram with gondola (-25)</option></select><span class="hint">Holtrop convention; verify the actual stern classification.</span></div>
-  </div>
-</div>
-
-<div class="card">
-  <h2 class="section-title">Propeller Particulars</h2>
-  <div class="grid">
-    <div class="fg"><label for="D">Propeller Diameter (D)</label><input type="number" id="D" value="1.75" step="0.01" min="0.05"><span class="hint">m</span></div>
-    <div class="fg"><label for="Z">Number of Blades (Z)</label><input type="number" id="Z" value="4" step="1" min="2" max="7"></div>
-    <div class="fg"><label for="PD">Pitch Ratio (P/D)</label><input type="number" id="PD" value="1.3" step="0.01" min="0.1" max="2.5"><span class="hint">B-Series nominal range ≈ 0.6–1.4; values outside are warned.</span></div>
-    <div class="fg"><label for="AeAo">Expanded Blade Area Ratio (A<sub>E</sub>/A<sub>O</sub>)</label><input type="number" id="AeAo" value="0.5035" step="0.0001" min="0.1" max="1.5"><span class="hint">B-Series nominal range ≈ 0.30–1.05.</span></div>
-    <div class="fg"><label for="shaftType">Shaft Configuration</label><select id="shaftType"><option value="twin">Twin-Screw</option><option value="single">Single-Screw</option></select></div>
-    <div class="fg"><label for="shaftCount">Number of Propellers</label><input type="number" id="shaftCount" value="2" step="1" min="1" max="4"><span class="hint">Used explicitly for vessel-wide thrust/power accounting. For standard single/twin Holtrop correlations this is synchronized to shaft configuration.</span></div>
-    <div class="fg"><label for="c075R">Propeller Chord at 0.75R (c<sub>0.75R</sub>)</label><input type="number" id="c075R" value="0.447" step="0.001" min="0"><span class="hint">m. Use 0 to disable full-scale Reynolds correction. Auto estimate ≈ 2.073(A<sub>E</sub>/A<sub>O</sub>)D/Z.</span></div>
-    <div class="fg checkbox"><input type="checkbox" id="useReCorrection"><label for="useReCorrection">Apply B-Series Reynolds correction above 2×10⁶</label></div>
-  </div>
-  <div class="status info" id="propStatus"><strong>B-Series scope:</strong>&nbsp; polynomial and Reynolds-correction outputs are screened against their published domain; they are not a substitute for a full propeller cavitation/strength analysis.</div>
-</div>
-
-<div class="card">
-  <h2 class="section-title">Rudder Particulars — IACS UR S10 / BV-oriented Screening</h2>
-  <div class="grid">
-    <div class="fg"><label for="rud_h">Mean Rudder Height (b)</label><input type="number" id="rud_h" value="7" step="0.1" min="0.1"><span class="hint">m. Used in λ = b²/A<sub>t</sub>.</span></div>
-    <div class="fg"><label for="rud_b">Mean Rudder Breadth (c)</label><input type="number" id="rud_b" value="4" step="0.1" min="0.1"><span class="hint">m. Mean breadth of the rudder area.</span></div>
-    <div class="fg"><label for="rud_AR">Rudder Blade Area (A)</label><input type="number" id="rud_AR" value="28.3689" step="0.001" min="0.001"><span class="hint">m²</span></div>
-    <div class="fg"><label for="rud_At">Area Within Mean Height (A<sub>t</sub>)</label><input type="number" id="rud_At" value="28.3689" step="0.001" min="0.001"><span class="hint">m². Include rudder post/horn area within height b where applicable.</span></div>
-    <div class="fg"><label for="rud_AF">Area Afore Stock (A<sub>f</sub>)</label><input type="number" id="rud_AF" value="8.3" step="0.1" min="0"><span class="hint">m²</span></div>
-    <div class="fg"><label for="rud_profile">Rudder Profile</label><select id="rud_profile"><option value="naca">NACA-00 / Gottingen</option><option value="flat">Flat side</option><option value="hollow">Hollow</option><option value="highlift">High lift</option><option value="fishtail">Fish tail</option><option value="singleplate">Single plate</option><option value="mixed">Mixed profile (e.g. HSVA)</option></select></div>
-    <div class="fg"><label for="rud_k3">K<sub>3</sub> Rudder Installation Factor</label><select id="rud_k3"><option value="0.8">0.80 — Outside propeller jet</option><option value="1" selected>1.00 — Otherwise</option><option value="1.15">1.15 — Behind fixed propeller nozzle</option></select></div>
-    <div class="fg"><label for="rud_k">Material Factor (k)</label><input type="number" id="rud_k" value="1" step="0.01" min="0.1"><span class="hint">For the stock equation; k=1 corresponds to the 235 N/mm² reference basis.</span></div>
-    <div class="fg"><label for="rud_MB">Bending Moment at Stock Section (M)</label><input type="number" id="rud_MB" value="0" step="100" min="0"><span class="hint">N·m. Project/class structural calculation input; not inferred here.</span></div>
-    <div class="fg"><label for="rud_VA">Maximum Ahead Service Speed</label><input type="number" id="rud_VA" value="11" step="0.1" min="0.1"><span class="hint">knots. If below 10 kn, the rule speed substitution is applied.</span></div>
-    <div class="fg"><label for="rud_VD">Maximum Astern Speed</label><input type="number" id="rud_VD" value="5" step="0.1" min="0"><span class="hint">knots. Effective astern speed is max(input, 0.5 × ahead service speed).</span></div>
-  </div>
-  <div class="status warn" id="rudderStatus"><strong>Rule scope:</strong>&nbsp; rudder-force/torque equations follow the ordinary rudder form. Semi-spade cut-outs require area-partition pressure distribution. Current BV NR467 defines maximum ahead service speed as the greatest speed the ship is designed to maintain at deepest seagoing draught, and maximum astern speed from designed maximum astern power.</div>
-</div>
-
-<div class="card">
-  <h2 class="section-title">Environmental & Efficiency Parameters</h2>
-  <div class="grid">
-    <div class="fg"><label for="rho">Water Density (ρ)</label><input type="number" id="rho" value="1025" step="1" min="1"><span class="hint">kg/m³. 1025 is a common seawater design value.</span></div>
-    <div class="fg"><label for="nu">Kinematic Viscosity (ν)</label><input type="number" id="nu" value="0.00000119" step="0.00000001" min="1e-8"><span class="hint">m²/s. Adjust for actual water temperature/salinity.</span></div>
-    <div class="fg"><label for="etaS">Shafting Efficiency (η<sub>S</sub>)</label><input type="number" id="etaS" value="0.99" step="0.01" min="0.8" max="1"></div>
-    <div class="fg"><label for="margin">Sea Margin / Engine Reserve (%)</label><input type="number" id="margin" value="15" step="1" min="0" max="50"><span class="hint">Design/project input, not an H–M constant.</span></div>
-    <div class="fg"><label for="SAPP">Appendage Wetted Area (S<sub>APP</sub>)</label><input type="number" id="SAPP" value="5.478" step="0.001" min="0"><span class="hint">m²</span></div>
-    <div class="fg"><label for="k2">Appendage Resistance Factor (1+k<sub>2</sub>)</label><input type="number" id="k2" value="2.8" step="0.1" min="0"><span class="hint">Example: twin-screw balance rudders ≈ 2.8 in H–M guidance.</span></div>
-  </div>
-</div>
-
-<div style="text-align:center;margin:35px 0">
-  <button class="btn accent" id="calcBtn" type="button" style="padding:14px 60px;font-size:1.05rem">Execute Hydrodynamic Calculations</button>
-  <button class="btn" id="resetBtn" type="button" style="margin-left:12px">Reset to Defaults</button>
-  <button class="btn" id="exportBtn" type="button" style="margin-left:12px">Export Technical Report</button>
-</div>
-
-<div id="resultsSection" class="results-section">
   <div class="card">
-    <h2 class="section-title">Hydrodynamic Calculation Results</h2>
-    <div class="summary-box">
-      <h3>Power Requirements Synthesis</h3>
-      <div class="summary-grid">
-        <div class="summary-item"><div class="summary-label">Total Resistance</div><div class="summary-value" id="sumRtotal">-</div><div class="summary-unit">kN</div></div>
-        <div class="summary-item"><div class="summary-label">Effective Power</div><div class="summary-value" id="sumPE">-</div><div class="summary-unit">kW</div></div>
-        <div class="summary-item"><div class="summary-label">Shaft Power</div><div class="summary-value" id="sumPS">-</div><div class="summary-unit">kW</div></div>
-        <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengine">-</div><div class="summary-unit">kW</div></div>
-        <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengineHP">-</div><div class="summary-unit">HP</div></div>
-      </div>
-    </div>
-
-    <div class="result-grid">
-      <div class="result-card"><h3>Hull Parameters</h3>
-        <div class="result-item"><span class="result-label">Froude Number (F<sub>n</sub>)</span><span class="result-value" id="rFn"></span></div>
-        <div class="result-item"><span class="result-label">Block Coefficient (C<sub>B</sub>)</span><span class="result-value" id="rCB"></span></div>
-        <div class="result-item"><span class="result-label">Midship Coefficient (C<sub>M</sub>)</span><span class="result-value" id="rCM"></span></div>
-        <div class="result-item"><span class="result-label">Prismatic Coefficient (C<sub>P</sub>)</span><span class="result-value" id="rCP"></span></div>
-        <div class="result-item"><span class="result-label">Wetted Surface (S)</span><span class="result-value" id="rS"></span><span class="result-unit">m²</span></div>
-        <div class="result-item"><span class="result-label">Reynolds Number (R<sub>n</sub>)</span><span class="result-value" id="rRN"></span></div>
-        <div class="result-item"><span class="result-label">Ship Speed</span><span class="result-value" id="rVm"></span><span class="result-unit">m/s</span></div>
-        <div class="result-item"><span class="result-label">Length of Run (L<sub>R</sub>)</span><span class="result-value" id="rLR"></span><span class="result-unit">m</span></div>
-      </div>
-      <div class="result-card"><h3>Resistance Components</h3>
-        <div class="result-item"><span class="result-label">Frictional Resistance</span><span class="result-value" id="rRF"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Viscous Form Factor</span><span class="result-value" id="rk1"></span></div>
-        <div class="result-item"><span class="result-label">Appendage Resistance</span><span class="result-value" id="rRAPP"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Wave Resistance</span><span class="result-value" id="rRW"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Bulb Resistance</span><span class="result-value" id="rRB"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Transom Resistance</span><span class="result-value" id="rRTR"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Correlation Resistance</span><span class="result-value" id="rRA"></span><span class="result-unit">kN</span></div>
-        <div class="result-item highlight"><span class="result-label"><strong>Total Resistance</strong></span><span class="result-value" id="rRtotal"></span><span class="result-unit">kN</span></div>
-      </div>
-      <div class="result-card"><h3>Propulsion Factors</h3>
-        <div class="result-item"><span class="result-label">Wake Fraction (w)</span><span class="result-value" id="rw"></span></div>
-        <div class="result-item"><span class="result-label">Thrust Deduction (t)</span><span class="result-value" id="rt"></span></div>
-        <div class="result-item"><span class="result-label">Hull Efficiency (η<sub>H</sub>)</span><span class="result-value" id="retaH"></span></div>
-        <div class="result-item"><span class="result-label">Relative Rotative Efficiency (η<sub>R</sub>)</span><span class="result-value" id="retaR"></span></div>
-        <div class="result-item"><span class="result-label">Open Water Efficiency (η<sub>O</sub>)</span><span class="result-value" id="retaO"></span></div>
-        <div class="result-item"><span class="result-label">Quasi-Propulsive Coefficient (η<sub>D</sub>)</span><span class="result-value" id="retaD"></span></div>
-      </div>
-      <div class="result-card"><h3>Propeller Operating Point</h3>
-        <div class="result-item"><span class="result-label">Total Required Thrust</span><span class="result-value" id="rT"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Thrust per Propeller</span><span class="result-value" id="rTper"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Velocity of Advance (V<sub>A</sub>)</span><span class="result-value" id="rVA"></span><span class="result-unit">knots</span></div>
-        <div class="result-item"><span class="result-label">Advance Coefficient (J)</span><span class="result-value" id="rJ"></span></div>
-        <div class="result-item"><span class="result-label">Rotational Frequency (n)</span><span class="result-value" id="rn"></span><span class="result-unit">rev/s</span></div>
-        <div class="result-item"><span class="result-label">Rotational Speed (N)</span><span class="result-value" id="rRPM"></span><span class="result-unit">RPM</span></div>
-        <div class="result-item"><span class="result-label">Thrust Coefficient (K<sub>T</sub>)</span><span class="result-value" id="rKT"></span></div>
-        <div class="result-item"><span class="result-label">Torque Coefficient (K<sub>Q</sub>)</span><span class="result-value" id="rKQ"></span></div>
-        <div class="result-item"><span class="result-label">Thrust Balance Error</span><span class="result-value" id="rThrustError"></span><span class="result-unit">%</span></div>
-      </div>
-      <div class="result-card"><h3>Power Chain</h3>
-        <div class="result-item"><span class="result-label">Effective Power (P<sub>E</sub>)</span><span class="result-value" id="rPE"></span><span class="result-unit">kW</span></div>
-        <div class="result-item"><span class="result-label">Delivered Power (P<sub>D</sub>)</span><span class="result-value" id="rPD"></span><span class="result-unit">kW</span></div>
-        <div class="result-item"><span class="result-label">Total Shaft Power</span><span class="result-value" id="rPS"></span><span class="result-unit">kW</span></div>
-        <div class="result-item"><span class="result-label">Shaft Power / Propeller</span><span class="result-value" id="rPSper"></span><span class="result-unit">kW</span></div>
-        <div class="result-item highlight"><span class="result-label"><strong>Engine Power + Margin</strong></span><span class="result-value" id="rPengine"></span><span class="result-unit">kW</span></div>
-        <div class="result-item"><span class="result-label">Engine Power + Margin</span><span class="result-value" id="rPengineHP"></span><span class="result-unit">HP</span></div>
-      </div>
-      <div class="result-card"><h3>Rudder / Stock Screening</h3>
-        <div class="result-item"><span class="result-label">Aspect Ratio (λ)</span><span class="result-value" id="r_lam"></span></div>
-        <div class="result-item"><span class="result-label">K<sub>1</sub> Aspect Factor</span><span class="result-value" id="r_k1r"></span></div>
-        <div class="result-item"><span class="result-label">Ahead Design Force</span><span class="result-value" id="r_CR_a"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Astern Design Force</span><span class="result-value" id="r_CR_d"></span><span class="result-unit">kN</span></div>
-        <div class="result-item"><span class="result-label">Ahead Torque</span><span class="result-value" id="r_M_a"></span><span class="result-unit">kN·m</span></div>
-        <div class="result-item"><span class="result-label">Astern Torque</span><span class="result-value" id="r_M_d"></span><span class="result-unit">kN·m</span></div>
-        <div class="result-item highlight"><span class="result-label"><strong>Design Torque</strong></span><span class="result-value" id="r_M_design"></span><span class="result-unit">kN·m</span></div>
-        <div class="result-item highlight"><span class="result-label"><strong>Stock Diameter Screening</strong></span><span class="result-value" id="r_dTF"></span><span class="result-unit">mm</span></div>
-      </div>
-    </div>
-
-    <div class="details">
-      <h3 class="section-title" style="margin-top:35px">Detailed Calculation Breakdown</h3>
-      <details><summary>I. Validation & Applicability</summary><div class="detail-content" id="detailValidation"></div></details>
-      <details><summary>II. Hull Parameters and Holtrop-Mennen Resistance</summary><div class="detail-content" id="detailHull"></div></details>
-      <details><summary>III. Propulsion Factors and Power</summary><div class="detail-content" id="detailPropulsion"></div></details>
-      <details><summary>IV. Wageningen B-Series Propeller Matching</summary><div class="detail-content" id="detailPropeller"></div></details>
-      <details><summary>V. Rudder Force, Torque and Stock Screening</summary><div class="detail-content" id="detailRudder"></div></details>
+    <h2>Vessel Principal Particulars</h2>
+    <div class="field-grid">
+      <div class="fg"><label for="LWL">Length on Waterline (L<sub>WL</sub>)</label><input type="number" id="LWL" value="82.163" step="0.001" min="0.001"><span class="hint">m</span></div>
+      <div class="fg"><label for="LBP">Length Between Perpendiculars (L<sub>BP</sub>)</label><input type="number" id="LBP" value="78.997" step="0.001" min="0.001"><span class="hint">m. Used for LBP-based hydrostatic checks.</span></div>
+      <div class="fg"><label for="B">Breadth Moulded (B)</label><input type="number" id="B" value="12.74" step="0.01" min="0.01"><span class="hint">m</span></div>
+      <div class="fg"><label for="T">Mean Draught (T)</label><input type="number" id="T" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+      <div class="fg"><label for="TF">Forward Draught (T<sub>F</sub>)</label><input type="number" id="TF" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+      <div class="fg"><label for="TA">Aft Draught (T<sub>A</sub>)</label><input type="number" id="TA" value="4" step="0.01" min="0.01"><span class="hint">m</span></div>
+      <div class="fg"><label for="nabla">Displacement Volume (∇)</label><input type="number" id="nabla" value="3049.458" step="0.001" min="0.001"><span class="hint">m³</span></div>
+      <div class="fg"><label for="V">Service Speed (V)</label><input type="number" id="V" value="11" step="0.1" min="0.1"><span class="hint">knots</span></div>
     </div>
   </div>
-</div>
 
-<footer class="footer">
-  <p>&copy; Marine Power & Hydrodynamics Calculator v3. All calculations execute locally within the browser.</p>
-  <p>Primary methodology: Holtrop & Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial correlations, and IACS UR S10 / corresponding class-rule concepts for rudder force and stock screening.</p>
-  <p>Current BV NR467 January 2026 defines maximum ahead service speed and maximum astern speed for steering/rudder considerations; consult the official class PDF for the applicable ship and notation.</p>
-</footer>
-</div>
+  <div class="card">
+    <h2>Hull Form Coefficients</h2>
+    <div class="field-grid">
+      <div class="fg"><label for="CB">Block Coefficient (C<sub>B</sub>)</label><input type="number" id="CB" value="0.7283" step="0.0001" min="0.01" max="1"><span class="formula">C<sub>B</sub> = ∇ / (L<sub>WL</sub> · B · T)</span></div>
+      <div class="fg"><label for="CM">Midship Section Coefficient (C<sub>M</sub>)</label><input type="number" id="CM" value="0.986" step="0.0001" min="0.01" max="1"><span class="hint">Validated against A<sub>M</sub> / (B·T).</span></div>
+      <div class="fg"><label for="CWP">Waterplane Area Coefficient (C<sub>WP</sub>)</label><input type="number" id="CWP" value="0.891" step="0.0001" min="0.01" max="1"></div>
+      <div class="fg"><label for="AM">Midship Section Area (A<sub>M</sub>)</label><input type="number" id="AM" value="50.24656" step="0.00001" min="0.001"><span class="hint">m². Default is consistent with C<sub>M</sub>=0.986, B=12.74, T=4.</span></div>
+      <div class="fg"><label for="AT">Immersed Transom Area (A<sub>T</sub>)</label><input type="number" id="AT" value="6" step="0.1" min="0"><span class="hint">m² at zero speed reference condition.</span></div>
+      <div class="fg"><label for="ABT">Transverse Bulb Area (A<sub>BT</sub>)</label><input type="number" id="ABT" value="0" step="0.1" min="0"><span class="hint">m². Use 0 for no bulb.</span></div>
+      <div class="fg"><label for="hB">Bulb Centre Height (h<sub>B</sub>)</label><input type="number" id="hB" value="0" step="0.1" min="0"><span class="hint">m above keel</span></div>
+      <div class="fg"><label for="lcbPct">LCB Position Forward of 0.5L</label><input type="number" id="lcbPct" value="1.01" step="0.01"><span class="hint">% of L<sub>WL</sub>. The former 2.02% of L/2 input is equivalent to 1.01% of L.</span></div>
+      <div class="fg"><label for="Cstern">Stern Shape Parameter (C<sub>stern</sub>)</label><select id="Cstern"><option value="0">Normal section (0)</option><option value="-10">U-shaped / Hogner stern (−10)</option><option value="10">V-shaped sections (+10)</option><option value="-25">Pram with gondola (−25)</option></select><span class="hint">Holtrop convention; verify the actual stern classification.</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Propeller Particulars</h2>
+    <div class="field-grid">
+      <div class="fg"><label for="D">Propeller Diameter (D)</label><input type="number" id="D" value="1.75" step="0.01" min="0.05"><span class="hint">m</span></div>
+      <div class="fg"><label for="Z">Number of Blades (Z)</label><input type="number" id="Z" value="4" step="1" min="2" max="7"></div>
+      <div class="fg"><label for="PD">Pitch Ratio (P/D)</label><input type="number" id="PD" value="1.3" step="0.01" min="0.1" max="2.5"><span class="hint">B-Series nominal range ≈ 0.6–1.4; values outside are warned.</span></div>
+      <div class="fg"><label for="AeAo">Expanded Blade Area Ratio (A<sub>E</sub>/A<sub>O</sub>)</label><input type="number" id="AeAo" value="0.5035" step="0.0001" min="0.1" max="1.5"><span class="hint">B-Series nominal range ≈ 0.30–1.05.</span></div>
+      <div class="fg"><label for="shaftType">Shaft Configuration</label><select id="shaftType"><option value="twin">Twin-Screw</option><option value="single">Single-Screw</option></select></div>
+      <div class="fg"><label for="shaftCount">Number of Propellers</label><input type="number" id="shaftCount" value="2" step="1" min="1" max="4"><span class="hint">Synchronized to shaft configuration for standard Holtrop correlations.</span></div>
+      <div class="fg"><label for="c075R">Propeller Chord at 0.75R (c<sub>0.75R</sub>)</label><input type="number" id="c075R" value="0.447" step="0.001" min="0"><span class="hint">m. Use 0 to disable full-scale Reynolds correction. Auto estimate ≈ 2.073·(A<sub>E</sub>/A<sub>O</sub>)·D/Z.</span></div>
+      <div class="fg checkbox"><input type="checkbox" id="useReCorrection"><label for="useReCorrection">Apply B-Series Reynolds correction above 2×10⁶</label></div>
+    </div>
+    <div class="status info" id="propStatus"><strong>B-Series scope.</strong> Polynomial and Reynolds-correction outputs are screened against their published domain; they are not a substitute for a full propeller cavitation/strength analysis.</div>
+  </div>
+
+  <div class="card">
+    <h2>Rudder Particulars — IACS UR S10 / BV-oriented Screening</h2>
+    <div class="field-grid">
+      <div class="fg"><label for="rud_h">Mean Rudder Height (b)</label><input type="number" id="rud_h" value="7" step="0.1" min="0.1"><span class="hint">m. Used in λ = b²/A<sub>t</sub>.</span></div>
+      <div class="fg"><label for="rud_b">Mean Rudder Breadth (c)</label><input type="number" id="rud_b" value="4" step="0.1" min="0.1"><span class="hint">m. Mean breadth of the rudder area.</span></div>
+      <div class="fg"><label for="rud_AR">Rudder Blade Area (A)</label><input type="number" id="rud_AR" value="28.3689" step="0.001" min="0.001"><span class="hint">m²</span></div>
+      <div class="fg"><label for="rud_At">Area Within Mean Height (A<sub>t</sub>)</label><input type="number" id="rud_At" value="28.3689" step="0.001" min="0.001"><span class="hint">m². Include rudder post/horn area within height b where applicable.</span></div>
+      <div class="fg"><label for="rud_AF">Area Afore Stock (A<sub>f</sub>)</label><input type="number" id="rud_AF" value="8.3" step="0.1" min="0"><span class="hint">m²</span></div>
+      <div class="fg"><label for="rud_profile">Rudder Profile</label><select id="rud_profile"><option value="naca">NACA-00 / Gottingen</option><option value="flat">Flat side</option><option value="hollow">Hollow</option><option value="highlift">High lift</option><option value="fishtail">Fish tail</option><option value="singleplate">Single plate</option><option value="mixed">Mixed profile (e.g. HSVA)</option></select></div>
+      <div class="fg"><label for="rud_k3">K<sub>3</sub> Rudder Installation Factor</label><select id="rud_k3"><option value="0.8">0.80 — Outside propeller jet</option><option value="1" selected>1.00 — Otherwise</option><option value="1.15">1.15 — Behind fixed propeller nozzle</option></select></div>
+      <div class="fg"><label for="rud_k">Material Factor (k)</label><input type="number" id="rud_k" value="1" step="0.01" min="0.1"><span class="hint">For the stock equation; k=1 corresponds to the 235 N/mm² reference basis.</span></div>
+      <div class="fg"><label for="rud_MB">Bending Moment at Stock Section (M)</label><input type="number" id="rud_MB" value="0" step="100" min="0"><span class="hint">N·m. Project/class structural calculation input; not inferred here.</span></div>
+      <div class="fg"><label for="rud_VA">Maximum Ahead Service Speed</label><input type="number" id="rud_VA" value="11" step="0.1" min="0.1"><span class="hint">knots. If below 10 kn, the rule speed substitution is applied.</span></div>
+      <div class="fg"><label for="rud_VD">Maximum Astern Speed</label><input type="number" id="rud_VD" value="5" step="0.1" min="0"><span class="hint">knots. Effective astern speed is max(input, 0.5 × ahead service speed).</span></div>
+    </div>
+    <div class="status warn" id="rudderStatus"><strong>Rule scope.</strong> Rudder-force/torque equations follow the ordinary rudder form. Semi-spade cut-outs require area-partition pressure distribution. Current BV NR467 defines maximum ahead service speed as the greatest speed the ship is designed to maintain at deepest seagoing draught, and maximum astern speed from designed maximum astern power.</div>
+  </div>
+
+  <div class="card">
+    <h2>Environmental &amp; Efficiency Parameters</h2>
+    <div class="field-grid">
+      <div class="fg"><label for="rho">Water Density (ρ)</label><input type="number" id="rho" value="1025" step="1" min="1"><span class="hint">kg/m³. 1025 is a common seawater design value.</span></div>
+      <div class="fg"><label for="nu">Kinematic Viscosity (ν)</label><input type="number" id="nu" value="0.00000119" step="0.00000001" min="1e-8"><span class="hint">m²/s. Adjust for actual water temperature/salinity.</span></div>
+      <div class="fg"><label for="etaS">Shafting Efficiency (η<sub>S</sub>)</label><input type="number" id="etaS" value="0.99" step="0.01" min="0.8" max="1"></div>
+      <div class="fg"><label for="margin">Sea Margin / Engine Reserve (%)</label><input type="number" id="margin" value="15" step="1" min="0" max="50"><span class="hint">Design/project input, not an H–M constant.</span></div>
+      <div class="fg"><label for="SAPP">Appendage Wetted Area (S<sub>APP</sub>)</label><input type="number" id="SAPP" value="5.478" step="0.001" min="0"><span class="hint">m²</span></div>
+      <div class="fg"><label for="k2">Appendage Resistance Factor (1+k<sub>2</sub>)</label><input type="number" id="k2" value="2.8" step="0.1" min="0"><span class="hint">Example: twin-screw balance rudders ≈ 2.8 in H–M guidance.</span></div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn accent" id="calcBtn" type="button">Execute Hydrodynamic Calculations</button>
+    <button class="btn secondary" id="resetBtn" type="button">Reset to Defaults</button>
+    <button class="btn secondary" id="exportBtn" type="button">Download Report</button>
+    <button class="btn secondary" id="copyBtn" type="button">Copy Report</button>
+  </div>
+
+  <div id="resultsSection" class="results-section">
+    <div class="card">
+      <h2>Hydrodynamic Calculation Results</h2>
+      <div class="summary-box">
+        <h3>Power Requirements Synthesis</h3>
+        <div class="summary-grid">
+          <div class="summary-item"><div class="summary-label">Total Resistance</div><div class="summary-value" id="sumRtotal">-</div><div class="summary-unit">kN</div></div>
+          <div class="summary-item"><div class="summary-label">Effective Power</div><div class="summary-value" id="sumPE">-</div><div class="summary-unit">kW</div></div>
+          <div class="summary-item"><div class="summary-label">Shaft Power</div><div class="summary-value" id="sumPS">-</div><div class="summary-unit">kW</div></div>
+          <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengine">-</div><div class="summary-unit">kW</div></div>
+          <div class="summary-item"><div class="summary-label">Engine Power + Margin</div><div class="summary-value" id="sumPengineHP">-</div><div class="summary-unit">HP</div></div>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-card"><h3>Hull Parameters</h3>
+          <div class="result-item"><span class="result-label">Froude Number (F<sub>n</sub>)</span><span class="result-value" id="rFn"></span></div>
+          <div class="result-item"><span class="result-label">Block Coefficient (C<sub>B</sub>)</span><span class="result-value" id="rCB"></span></div>
+          <div class="result-item"><span class="result-label">Midship Coefficient (C<sub>M</sub>)</span><span class="result-value" id="rCM"></span></div>
+          <div class="result-item"><span class="result-label">Prismatic Coefficient (C<sub>P</sub>)</span><span class="result-value" id="rCP"></span></div>
+          <div class="result-item"><span class="result-label">Wetted Surface (S)</span><span class="result-value" id="rS"></span><span class="result-unit">m²</span></div>
+          <div class="result-item"><span class="result-label">Reynolds Number (R<sub>n</sub>)</span><span class="result-value" id="rRN"></span></div>
+          <div class="result-item"><span class="result-label">Ship Speed</span><span class="result-value" id="rVm"></span><span class="result-unit">m/s</span></div>
+          <div class="result-item"><span class="result-label">Length of Run (L<sub>R</sub>)</span><span class="result-value" id="rLR"></span><span class="result-unit">m</span></div>
+        </div>
+        <div class="result-card"><h3>Resistance Components</h3>
+          <div class="result-item"><span class="result-label">Frictional Resistance</span><span class="result-value" id="rRF"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Viscous Form Factor</span><span class="result-value" id="rk1"></span></div>
+          <div class="result-item"><span class="result-label">Appendage Resistance</span><span class="result-value" id="rRAPP"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Wave Resistance</span><span class="result-value" id="rRW"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Bulb Resistance</span><span class="result-value" id="rRB"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Transom Resistance</span><span class="result-value" id="rRTR"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Correlation Resistance</span><span class="result-value" id="rRA"></span><span class="result-unit">kN</span></div>
+          <div class="result-item highlight"><span class="result-label">Total Resistance</span><span class="result-value" id="rRtotal"></span><span class="result-unit">kN</span></div>
+        </div>
+        <div class="result-card"><h3>Propulsion Factors</h3>
+          <div class="result-item"><span class="result-label">Wake Fraction (w)</span><span class="result-value" id="rw"></span></div>
+          <div class="result-item"><span class="result-label">Thrust Deduction (t)</span><span class="result-value" id="rt"></span></div>
+          <div class="result-item"><span class="result-label">Hull Efficiency (η<sub>H</sub>)</span><span class="result-value" id="retaH"></span></div>
+          <div class="result-item"><span class="result-label">Relative Rotative Efficiency (η<sub>R</sub>)</span><span class="result-value" id="retaR"></span></div>
+          <div class="result-item"><span class="result-label">Open Water Efficiency (η<sub>O</sub>)</span><span class="result-value" id="retaO"></span></div>
+          <div class="result-item"><span class="result-label">Quasi-Propulsive Coefficient (η<sub>D</sub>)</span><span class="result-value" id="retaD"></span></div>
+        </div>
+        <div class="result-card"><h3>Propeller Operating Point</h3>
+          <div class="result-item"><span class="result-label">Total Required Thrust</span><span class="result-value" id="rT"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Thrust per Propeller</span><span class="result-value" id="rTper"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Velocity of Advance (V<sub>A</sub>)</span><span class="result-value" id="rVA"></span><span class="result-unit">knots</span></div>
+          <div class="result-item"><span class="result-label">Advance Coefficient (J)</span><span class="result-value" id="rJ"></span></div>
+          <div class="result-item"><span class="result-label">Rotational Frequency (n)</span><span class="result-value" id="rn"></span><span class="result-unit">rev/s</span></div>
+          <div class="result-item"><span class="result-label">Rotational Speed (N)</span><span class="result-value" id="rRPM"></span><span class="result-unit">RPM</span></div>
+          <div class="result-item"><span class="result-label">Thrust Coefficient (K<sub>T</sub>)</span><span class="result-value" id="rKT"></span></div>
+          <div class="result-item"><span class="result-label">Torque Coefficient (K<sub>Q</sub>)</span><span class="result-value" id="rKQ"></span></div>
+          <div class="result-item"><span class="result-label">Thrust Balance Error</span><span class="result-value" id="rThrustError"></span><span class="result-unit">%</span></div>
+        </div>
+        <div class="result-card"><h3>Power Chain</h3>
+          <div class="result-item"><span class="result-label">Effective Power (P<sub>E</sub>)</span><span class="result-value" id="rPE"></span><span class="result-unit">kW</span></div>
+          <div class="result-item"><span class="result-label">Delivered Power (P<sub>D</sub>)</span><span class="result-value" id="rPD"></span><span class="result-unit">kW</span></div>
+          <div class="result-item"><span class="result-label">Total Shaft Power</span><span class="result-value" id="rPS"></span><span class="result-unit">kW</span></div>
+          <div class="result-item"><span class="result-label">Shaft Power / Propeller</span><span class="result-value" id="rPSper"></span><span class="result-unit">kW</span></div>
+          <div class="result-item highlight"><span class="result-label">Engine Power + Margin</span><span class="result-value" id="rPengine"></span><span class="result-unit">kW</span></div>
+          <div class="result-item"><span class="result-label">Engine Power + Margin</span><span class="result-value" id="rPengineHP"></span><span class="result-unit">HP</span></div>
+        </div>
+        <div class="result-card"><h3>Rudder / Stock Screening</h3>
+          <div class="result-item"><span class="result-label">Aspect Ratio (λ)</span><span class="result-value" id="r_lam"></span></div>
+          <div class="result-item"><span class="result-label">K<sub>1</sub> Aspect Factor</span><span class="result-value" id="r_k1r"></span></div>
+          <div class="result-item"><span class="result-label">Ahead Design Force</span><span class="result-value" id="r_CR_a"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Astern Design Force</span><span class="result-value" id="r_CR_d"></span><span class="result-unit">kN</span></div>
+          <div class="result-item"><span class="result-label">Ahead Torque</span><span class="result-value" id="r_M_a"></span><span class="result-unit">kN·m</span></div>
+          <div class="result-item"><span class="result-label">Astern Torque</span><span class="result-value" id="r_M_d"></span><span class="result-unit">kN·m</span></div>
+          <div class="result-item highlight"><span class="result-label">Design Torque</span><span class="result-value" id="r_M_design"></span><span class="result-unit">kN·m</span></div>
+          <div class="result-item highlight"><span class="result-label">Stock Diameter Screening</span><span class="result-value" id="r_dTF"></span><span class="result-unit">mm</span></div>
+        </div>
+      </div>
+
+      <div class="details">
+        <details><summary>I. Validation &amp; Applicability</summary><div class="detail-content" id="detailValidation"></div></details>
+        <details><summary>II. Hull Parameters and Holtrop-Mennen Resistance</summary><div class="detail-content" id="detailHull"></div></details>
+        <details><summary>III. Propulsion Factors and Power</summary><div class="detail-content" id="detailPropulsion"></div></details>
+        <details><summary>IV. Wageningen B-Series Propeller Matching</summary><div class="detail-content" id="detailPropeller"></div></details>
+        <details><summary>V. Rudder Force, Torque and Stock Screening</summary><div class="detail-content" id="detailRudder"></div></details>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-row">
+      <p style="margin:0;">© Marine Power &amp; Hydrodynamics Calculator v3. All calculations execute locally within the browser.</p>
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+        <label class="eyebrow" for="theme2" style="margin:0;">Theme</label>
+        <select id="theme2" aria-label="Theme" style="min-width:104px;min-height:30px;font-size:12px;">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+    </div>
+    <div class="footer-row" style="margin-bottom:0;">
+      <div class="footer-hints">
+        <span><kbd>Ctrl/⌘+Enter</kbd> calculate</span>
+      </div>
+    </div>
+    <p style="margin:.85rem 0 0;">Primary methodology: Holtrop &amp; Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial correlations, and IACS UR S10 / corresponding class-rule concepts for rudder force and stock screening.</p>
+    <p style="margin:.35rem 0 0;">Current BV NR467 January 2026 defines maximum ahead service speed and maximum astern speed for steering/rudder considerations; consult the official class PDF for the applicable ship and notation.</p>
+  </footer>
+
+</main>
 
 <script>
 (() => {
@@ -248,10 +640,77 @@ function addStatus(el,kind,html){el.className='status '+kind;el.innerHTML=html;}
 function polyValue(coeffs,J,PD,EAR,Z){let sum=0,terms=[];for(let i=0;i<coeffs.length;i++){const[c,s,t,u,v]=coeffs[i];const term=c*Math.pow(J,s)*Math.pow(PD,t)*Math.pow(EAR,u)*Math.pow(Z,v);sum+=term;terms.push({i:i+1,c,s,t,u,v,term});}return{sum,terms};}
 function autoChord(D,EAR,Z){return 2.073*EAR*D/Z;}
 
+/* ---------- Theme ---------- */
+const THEME_KEY='aznur-index-theme';
+function applyTheme(value){
+  if(value==='system')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',value);
+  try{localStorage.setItem(THEME_KEY,value);}catch{}
+  ['theme1','theme2'].forEach(id=>{const el=$(id);if(el)el.value=value;});
+}
+function initTheme(){
+  let stored='system';
+  try{stored=localStorage.getItem(THEME_KEY)||'system';}catch{}
+  applyTheme(stored);
+  ['theme1','theme2'].forEach(id=>{
+    const el=$(id);if(el)el.addEventListener('change',()=>applyTheme(el.value));
+  });
+}
+
+/* ---------- Toasts ---------- */
+function showToast(message,type='ok'){
+  const t=document.createElement('div');
+  t.className='toast '+(type||'ok');
+  const mark=document.createElement('span');
+  mark.className='toast-mark';
+  mark.textContent=type==='err'?'[x]':type==='warn'?'[!]':'[*]';
+  const body=document.createElement('span');
+  body.textContent=message;
+  t.append(mark,body);
+  $('toasts').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+/* ---------- Input persistence ---------- */
+const INPUTS_KEY='aznur-marine-inputs-v1';
+const INPUT_IDS=['LWL','LBP','B','T','TF','TA','nabla','V','CB','CM','CWP','AM','AT','ABT','hB','lcbPct','Cstern','D','Z','PD','AeAo','shaftType','shaftCount','c075R','useReCorrection','rud_h','rud_b','rud_AR','rud_At','rud_AF','rud_profile','rud_k3','rud_k','rud_MB','rud_VA','rud_VD','rho','nu','etaS','margin','SAPP','k2'];
+
+function saveInputs(){
+  try{
+    const data={};
+    for(const id of INPUT_IDS){
+      const el=$(id);
+      if(!el)continue;
+      data[id]=el.type==='checkbox'?el.checked:el.value;
+    }
+    localStorage.setItem(INPUTS_KEY,JSON.stringify(data));
+  }catch(e){/* storage may be unavailable */}
+}
+
+function loadInputs(){
+  try{
+    const raw=localStorage.getItem(INPUTS_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(!data||typeof data!=='object')return false;
+    for(const [id,v] of Object.entries(data)){
+      if(!INPUT_IDS.includes(id))continue;
+      const el=$(id);
+      if(!el)continue;
+      if(el.type==='checkbox')el.checked=!!v;
+      else el.value=String(v);
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+function clearSavedInputs(){
+  try{localStorage.removeItem(INPUTS_KEY);}catch(e){}
+}
+
 function reynoldsCorrection(J,PD,EAR,Z,Re075,enabled){
   if(!enabled||!Number.isFinite(Re075)||Re075<2e6)return{dKT:0,dKQ:0,active:false,reason:Re075<2e6?'Re0.75R < 2×10⁶':'not available'};
   if(Re075>2e9)return{dKT:0,dKQ:0,active:false,reason:'Re0.75R > 2×10⁹; outside published correction range'};
-  // Published polynomial uses log10(Re_n) - 0.301, with Re_n supplied as an absolute Reynolds number.
   const x=Math.log10(Re075)-0.301;
   const dKT=0.000353485
     -0.00333758*EAR*J*J
@@ -361,7 +820,7 @@ function calculateCore(){
   const CBcalc=p.nabla/(p.L*p.B*p.T);
   const CMcalc=p.AM/(p.B*p.T);
   const CP=p.nabla/(p.L*p.AM);
-  const lcbFrac=p.lcbPct; // H–M uses LCB as percent of L.
+  const lcbFrac=p.lcbPct;
   if(CP<=0||CP>=1)throw new Error('Computed C_P is outside 0–1. Check ∇, L and A_M.');
   const denomLR=4*CP-1;
   if(Math.abs(denomLR)<1e-10)throw new Error('Holtrop length-of-run expression is singular at C_P=0.25.');
@@ -485,7 +944,7 @@ function render(r){
   domainRows.push(check('B-Series P/D',r.p.PD>=0.6&&r.p.PD<=1.4,`P/D = ${fmt(r.p.PD,3)}; nominal range ≈0.6–1.4.`));
   domainRows.push(check('B-Series A_E/A_O',r.p.EAR>=0.30&&r.p.EAR<=1.05,`A_E/A_O = ${fmt(r.p.EAR,4)}; nominal range ≈0.30–1.05.`));
   domainRows.push(check('Thrust balance',Math.abs(r.thrustError)<=0.5,`Residual = ${fmt(r.thrustError,3)}%.`));
-  $('detailValidation').innerHTML=`<table class="check-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>${domainRows.join('')}</tbody></table><div class="status ${r.warnings.length?'warn':'ok'}"><strong>${r.warnings.length?'Warnings':'Checks passed'}:</strong>&nbsp; ${r.warnings.length?r.warnings.map(x=>`<div>${x}</div>`).join(''): 'No screening warnings were triggered for the current inputs.'}</div>`;
+  $('detailValidation').innerHTML=`<table class="check-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>${domainRows.join('')}</tbody></table><div class="status ${r.warnings.length?'warn':'ok'}"><strong>${r.warnings.length?'Warnings':'Checks passed'}.</strong>&nbsp; ${r.warnings.length?r.warnings.map(x=>`<div>${x}</div>`).join(''): 'No screening warnings were triggered for the current inputs.'}</div>`;
 
   $('detailHull').innerHTML=`
     <div class="detail-row"><span class="detail-label">Ship speed:</span><span class="detail-value">${r.p.Vkn} kn = ${r.V.toFixed(4)} m/s</span></div>
@@ -533,7 +992,7 @@ function render(r){
     <div class="detail-row"><span class="detail-label">J:</span><span class="detail-value">${r.J.toFixed(6)}</span></div>
     <div class="detail-row"><span class="detail-label">n:</span><span class="detail-value">${r.n.toFixed(4)} rev/s</span></div>
     <div class="detail-row"><span class="detail-label">RPM:</span><span class="detail-value">${r.RPM.toFixed(1)}</span></div>
-    <div class="detail-row"><span class="detail-label">Base K_T:</span><span class="detail-value">${r.J?kt.sum.toFixed(7):'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Base K_T:</span><span class="detail-value">${kt.sum.toFixed(7)}</span></div>
     <div class="detail-row"><span class="detail-label">Base K_Q:</span><span class="detail-value">${kq.sum.toFixed(7)}</span></div>
     <div class="detail-row"><span class="detail-label">ΔK_T Reynolds correction:</span><span class="detail-value">${r.corr.dKT.toExponential(7)} (${r.corr.active?'active':'inactive'})</span></div>
     <div class="detail-row"><span class="detail-label">ΔK_Q Reynolds correction:</span><span class="detail-value">${r.corr.dKQ.toExponential(7)} (${r.corr.active?'active':'inactive'})</span></div>
@@ -542,7 +1001,7 @@ function render(r){
     <div class="detail-row"><span class="detail-label">Generated thrust / total required thrust:</span><span class="detail-value">${(r.TgenTotal/1000).toFixed(3)} / ${(r.totalT/1000).toFixed(3)} kN</span></div>
     <h4 class="detail-heading">K_T polynomial</h4>${table(kt.terms,r.KT)}
     <h4 class="detail-heading">K_Q polynomial</h4>${table(kq.terms,r.KQ)}
-    <div class="status info"><strong>Reynolds note:</strong>&nbsp; the published correction polynomials are referenced to Re≈2×10⁶; the regression fit is not mathematically constrained to return an exact zero increment at the reference point. Use the correction only inside its stated range and with a defensible c_0.75R.</div>`;
+    <div class="status info"><strong>Reynolds note.</strong>&nbsp; The published correction polynomials are referenced to Re≈2×10⁶; the regression fit is not mathematically constrained to return an exact zero increment at the reference point. Use the correction only inside its stated range and with a defensible c_0.75R.</div>`;
 
   $('detailRudder').innerHTML=`
     <div class="detail-row"><span class="detail-label">Profile:</span><span class="detail-value">${r.rud.profile}</span></div>
@@ -565,9 +1024,9 @@ function render(r){
     <div class="detail-row"><span class="detail-label">Combined-load stock diameter, ahead case:</span><span class="detail-value">${r.rud.dcAhead.toFixed(2)} mm</span></div>
     <div class="detail-row"><span class="detail-label">Combined-load stock diameter, astern case:</span><span class="detail-value">${r.rud.dcAstern.toFixed(2)} mm</span></div>
     <div class="detail-row"><span class="detail-label">Design stock diameter screening:</span><span class="detail-value">${r.rud.dStock.toFixed(2)} mm</span></div>
-    <div class="status warn"><strong>Rudder scope:</strong>&nbsp; the force/torque equations are for an ordinary rudder. Semi-spade cut-outs require area-partition pressure distribution and separate levers. Bending moment is a project/class structural input; this tool does not invent it. Current BV NR467 also requires the system to be designed so the rudder is not damaged at maximum astern speed.</div>`;
+    <div class="status warn"><strong>Rudder scope.</strong>&nbsp; The force/torque equations are for an ordinary rudder. Semi-spade cut-outs require area-partition pressure distribution and separate levers. Bending moment is a project/class structural input; this tool does not invent it. Current BV NR467 also requires the system to be designed so the rudder is not damaged at maximum astern speed.</div>`;
 
-  addStatus($('propStatus'),r.p.useRe?'info':'info',`<strong>B-Series:</strong>&nbsp; ${r.corr.active?'Reynolds correction active.':'Base B-series polynomial only.'} ${r.corr.reason||''} Nominal domain warning is shown in Validation.`);
+  addStatus($('propStatus'),'info',`<strong>B-Series.</strong>&nbsp; ${r.corr.active?'Reynolds correction active.':'Base B-series polynomial only.'} ${r.corr.reason||''} Nominal domain warning is shown in Validation.`);
   $('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -577,19 +1036,150 @@ function resetDefaults(){
   $('shaftCount').value=2;$('resultsSection').style.display='none';
 }
 
-function exportReport(){
-  if($('resultsSection').style.display==='none'){alert('Please execute calculations prior to exporting the technical report.');return;}
-  let r;try{r=calculateCore();}catch(e){alert(e.message);return;}
-  const txt=`MARINE POWER & HYDRODYNAMICS CALCULATOR v3\n================================================\nGenerated: ${new Date().toLocaleString()}\n\nMETHODS\n-------\nHoltrop-Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial propeller matching and IACS UR S10 / BV-oriented rudder-stock screening.\n\nVESSEL\n------\nLWL: ${r.p.L} m\nLBP: ${r.p.LBP} m\nB: ${r.p.B} m\nT / TF / TA: ${r.p.T} / ${r.p.TF} / ${r.p.TA} m\nDisplacement volume: ${r.p.nabla} m3\nService speed: ${r.p.Vkn} kn\nCB entered / computed: ${r.p.CB} / ${r.CBcalc}\nCM entered / computed: ${r.p.CM} / ${r.CMcalc}\nCP: ${r.CP}\nLCB (%L): ${r.lcbFrac}\n\nRESISTANCE\n----------\nFn: ${r.Fn}\nS: ${r.S} m2\nRn: ${r.Rn}\nCF: ${r.CF}\nWave branch: ${r.wave.region}\nRT: ${(r.Rtotal/1000).toFixed(3)} kN\nPE: ${r.PE.toFixed(2)} kW\n\nPROPULSION\n----------\nConfiguration: ${r.prop.mode}\nPropellers: ${r.p.shaftCount}\nw: ${r.w}\nt: ${r.t}\netaH: ${r.etaH}\netaR: ${r.etaR}\netaO: ${r.etaO}\netaD: ${r.etaD}\nTotal thrust: ${(r.totalT/1000).toFixed(3)} kN\nThrust per propeller: ${(r.Tper/1000).toFixed(3)} kN\nJ: ${r.J}\nRPM: ${r.RPM.toFixed(2)}\nKT: ${r.KT}\nKQ: ${r.KQ}\nRe0.75R: ${Number.isFinite(r.Re075)?r.Re075:'not available'}\nThrust balance error: ${r.thrustError.toFixed(3)} %\nTotal shaft power: ${r.PS.toFixed(2)} kW\nEngine power with margin: ${r.Pengine.toFixed(2)} kW (${r.PengineHP.toFixed(0)} HP)\n\nRUDDER / STOCK SCREENING\n------------------------\nProfile: ${r.rud.profile}\nK2 ahead / astern: ${r.rud.K2Ahead} / ${r.rud.K2Astern}\nK3: ${r.rud.K3}\nAhead rule speed: ${r.rud.VHa.toFixed(3)} kn\nAstern rule speed: ${r.rud.VHast.toFixed(3)} kn\nAhead force: ${(r.rud.CRa/1000).toFixed(3)} kN\nAstern force: ${(r.rud.CRd/1000).toFixed(3)} kN\nAhead torque: ${(r.rud.Qa/1000).toFixed(3)} kN-m\nAstern torque: ${(r.rud.Qd/1000).toFixed(3)} kN-m\nDesign torque: ${(r.rud.Qdesign/1000).toFixed(3)} kN-m\nBending moment input: ${r.p.rud_MB} N-m\nStock diameter screening: ${r.rud.dStock.toFixed(2)} mm\n\nLIMITATIONS\n-----------\nHoltrop-Mennen is a statistical preliminary prediction method. B-Series is a model-series correlation with a defined Reynolds correction range. Rudder cut-out pressure distribution, support reactions, fatigue, cavitation, shafting strength and class-specific requirements are outside this screening tool.\n`;
-  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='marine_hydrodynamic_report_v3.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+function buildReportText(){
+  let r;
+  try{r=calculateCore();}catch(e){return null;}
+  return `MARINE POWER & HYDRODYNAMICS CALCULATOR v3
+================================================
+Generated: ${new Date().toLocaleString()}
+
+METHODS
+-------
+Holtrop-Mennen (1982), ITTC 1957 friction line, Wageningen B-Series polynomial propeller matching and IACS UR S10 / BV-oriented rudder-stock screening.
+
+VESSEL
+------
+LWL: ${r.p.L} m
+LBP: ${r.p.LBP} m
+B: ${r.p.B} m
+T / TF / TA: ${r.p.T} / ${r.p.TF} / ${r.p.TA} m
+Displacement volume: ${r.p.nabla} m3
+Service speed: ${r.p.Vkn} kn
+CB entered / computed: ${r.p.CB} / ${r.CBcalc}
+CM entered / computed: ${r.p.CM} / ${r.CMcalc}
+CP: ${r.CP}
+LCB (%L): ${r.lcbFrac}
+
+RESISTANCE
+----------
+Fn: ${r.Fn}
+S: ${r.S} m2
+Rn: ${r.Rn}
+CF: ${r.CF}
+Wave branch: ${r.wave.region}
+RT: ${(r.Rtotal/1000).toFixed(3)} kN
+PE: ${r.PE.toFixed(2)} kW
+
+PROPULSION
+----------
+Configuration: ${r.prop.mode}
+Propellers: ${r.p.shaftCount}
+w: ${r.w}
+t: ${r.t}
+etaH: ${r.etaH}
+etaR: ${r.etaR}
+etaO: ${r.etaO}
+etaD: ${r.etaD}
+Total thrust: ${(r.totalT/1000).toFixed(3)} kN
+Thrust per propeller: ${(r.Tper/1000).toFixed(3)} kN
+J: ${r.J}
+RPM: ${r.RPM.toFixed(2)}
+KT: ${r.KT}
+KQ: ${r.KQ}
+Re0.75R: ${Number.isFinite(r.Re075)?r.Re075:'not available'}
+Thrust balance error: ${r.thrustError.toFixed(3)} %
+Total shaft power: ${r.PS.toFixed(2)} kW
+Engine power with margin: ${r.Pengine.toFixed(2)} kW (${r.PengineHP.toFixed(0)} HP)
+
+RUDDER / STOCK SCREENING
+------------------------
+Profile: ${r.rud.profile}
+K2 ahead / astern: ${r.rud.K2Ahead} / ${r.rud.K2Astern}
+K3: ${r.rud.K3}
+Ahead rule speed: ${r.rud.VHa.toFixed(3)} kn
+Astern rule speed: ${r.rud.VHast.toFixed(3)} kn
+Ahead force: ${(r.rud.CRa/1000).toFixed(3)} kN
+Astern force: ${(r.rud.CRd/1000).toFixed(3)} kN
+Ahead torque: ${(r.rud.Qa/1000).toFixed(3)} kN-m
+Astern torque: ${(r.rud.Qd/1000).toFixed(3)} kN-m
+Design torque: ${(r.rud.Qdesign/1000).toFixed(3)} kN-m
+Bending moment input: ${r.p.rud_MB} N-m
+Stock diameter screening: ${r.rud.dStock.toFixed(2)} mm
+
+LIMITATIONS
+-----------
+Holtrop-Mennen is a statistical preliminary prediction method. B-Series is a model-series correlation with a defined Reynolds correction range. Rudder cut-out pressure distribution, support reactions, fatigue, cavitation, shafting strength and class-specific requirements are outside this screening tool.
+`;
 }
 
-$('calcBtn').addEventListener('click',()=>{try{render(calculateCore());}catch(e){$('resultsSection').style.display='block';$('detailValidation').innerHTML=`<div class="status error"><strong>Calculation error:</strong>&nbsp; ${e.message}</div>`;$('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});}});
-$('resetBtn').addEventListener('click',resetDefaults);
-$('exportBtn').addEventListener('click',exportReport);
+function downloadReport(){
+  if($('resultsSection').style.display==='none'){showToast('Please execute calculations first.','warn');return;}
+  const txt=buildReportText();
+  if(!txt){showToast('Calculation error; report could not be generated.','err');return;}
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='marine_hydrodynamic_report_v3.txt';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Report downloaded.');
+}
+
+function copyReport(){
+  if($('resultsSection').style.display==='none'){showToast('Please execute calculations first.','warn');return;}
+  const txt=buildReportText();
+  if(!txt){showToast('Calculation error; report could not be generated.','err');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt)
+      .then(()=>showToast('Report copied to clipboard.'))
+      .catch(()=>showToast('Clipboard copy failed.','err'));
+  }else{
+    showToast('Clipboard is unavailable in this browser.','warn');
+  }
+}
+
+/* ---------- Wire up ---------- */
+$('calcBtn').addEventListener('click',()=>{
+  try{
+    render(calculateCore());
+    saveInputs();
+    showToast('Calculation complete.');
+  }catch(e){
+    $('resultsSection').style.display='block';
+    $('detailValidation').innerHTML=`<div class="status error"><strong>Calculation error.</strong>&nbsp; ${e.message}</div>`;
+    $('resultsSection').scrollIntoView({behavior:'smooth',block:'start'});
+    showToast(e.message,'err');
+  }
+});
+
+$('resetBtn').addEventListener('click',()=>{
+  resetDefaults();
+  clearSavedInputs();
+  showToast('Reset to defaults.');
+});
+
+$('exportBtn').addEventListener('click',downloadReport);
+$('copyBtn').addEventListener('click',copyReport);
+
 $('shaftType').addEventListener('change',()=>{$('shaftCount').value=$('shaftType').value==='twin'?2:1;});
-$('AeAo').addEventListener('input',()=>{if($('c075R').value===''||parseFloat($('c075R').value)===0)return;});
-resetDefaults();
+
+/* Ctrl/⌘ + Enter triggers Calculate */
+document.addEventListener('keydown',(e)=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+    const active=document.activeElement;
+    if(active&&active.tagName==='TEXTAREA')return;
+    e.preventDefault();
+    $('calcBtn').click();
+  }
+});
+
+/* ---------- Boot ---------- */
+initTheme();
+if(!loadInputs()){
+  resetDefaults();
+}else{
+  $('shaftCount').value=$('shaftType').value==='twin'?2:1;
+}
 try{render(calculateCore());}catch(e){console.error(e);}
 })();
 </script>
